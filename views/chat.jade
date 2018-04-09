@@ -1,0 +1,22 @@
+extends layout
+
+block content
+    .container
+        .col-md-12
+            // PAGE HEADER
+            .page-header.text-center
+                h2 ChatApp
+            // PAGE BODY
+            .panel-group
+                .panel.panel-default
+                    .panel-heading
+                        h4.panel-title
+                            a(data-toggle='collapse', href='#chatpanel') Username:#{username}
+                    #chatpanel.panel-collapse.collapse
+                        .panel-body
+                            form
+                                .form-group
+                                    label(for='comment') Message:
+                                    textarea#comment.form-control(rows='3', style='resize:none')
+                                    button.btn.btn-primary.pull-right(type='submit', style='margin-top: 5px') Send
+                    .panel-footer

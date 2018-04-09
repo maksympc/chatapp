@@ -1,5 +1,21 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  .container
+    .col-md-12
+      // PAGE HEADER
+      .page-header.text-center
+        h2 ChatApp
+      // PAGE BODY
+      form.form-horizontal(action='/chat', method='post')
+        .form-group
+          label.col-sm-2.control-label(for='username') Username
+          .col-sm-10
+            input#username.form-control(name='username', placeholder='Anonymous')
+        .form-group
+          label.col-sm-2.control-label(for='password') Password
+          .col-sm-10
+            input#password.form-control(type='password', name='password', placeholder='Password')
+        .form-group
+          .col-sm-offset-2.col-sm-10
+            button.btn.btn-success(type='submit') Login
