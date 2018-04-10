@@ -1,0 +1,11 @@
+1. Login page
+1.1 Login form
+1.2 Post request
+1.3 Alert with errors
+1.4 Form validation
+1.5 Visual effects
+
+2. Chat page
+2.1 Chat area
+2.2 Active users area
+2.3 Message length restriction (200 symbols)
