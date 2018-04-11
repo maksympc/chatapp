@@ -8,8 +8,6 @@ var ctrlMain = require('../controllers/main');
 //TODO:маппинг на начальную страницу
 router.get('/', ctrlMain.index);
 
-
-
 router.get('/chat', function (req, res, next) {
     res.render('chat', {title: 'ChatApp. Chat page', username: 'empty'});
 });
