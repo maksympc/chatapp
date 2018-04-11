@@ -4,9 +4,15 @@ block body
     div
     .container
         .col-md-12
+
+
+
             // PAGE HEADER
             .page-header.text-center
                 h2 ChatApp
+
+
+
             // PAGE BODY
             .panel-group
                 .panel.panel-default
@@ -28,24 +34,11 @@ block body
                                             input#m.form-control.input.chat_input(style='margin-top:10px', autocomplete='off', maxlength="200",)
                                             span.input-group-btn
                                                 button#btn-chat-old.btn.btn-primary(style='margin-top:10px') Send
-
-
                         .panel-footer
-    //script(src='https://cdn.socket.io/socket.io-1.2.0.js')
-    //script(src='https://code.jquery.com/jquery-1.11.1.js')
-    //script.
-    //    $(function () {
-    //        var socket = io();
-    //        $('form').submit(function () {
-    //            socket.emit('chat message', $('#m').val());
-    //            $('#m').val('');
-    //            return false;
-    //        });
-    //        socket.on('chat message', function (msg) {
-    //            $('#messages').append($('<li>').text(msg));
-    //            window.scrollTo(0, document.body.scrollHeight);
-    //        });
-    //    });
+
+
+
+
 
     script(src='js/lib/angular/angular.js')
     script(src='js/app.js')

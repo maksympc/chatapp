@@ -10,8 +10,9 @@ var bodyParser = require("body-parser");
 //require('./app_api/models/db');
 //require('./app_api/config/passport');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+//TODO:перенесли положение routes
+var indexRouter = require('./app_server/routes/index');
+var usersRouter = require('./app_server/routes/users');
 
 
 var app = express();
@@ -21,7 +22,8 @@ var app = express();
 
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+//TODO:перенесли положение views
+app.set('views', path.join(__dirname, 'app_server', 'views'));
 app.set('view engine', 'jade');
 
 app.use(logger('dev'));
