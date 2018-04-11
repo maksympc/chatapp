@@ -1,11 +1,14 @@
 extends layout
 
 block body
-    .container
-        .col-md-12
+    .col-sm-6.col-sm-offset-3
+
             // PAGE HEADER. DESCRIPTION
             .page-header.text-center
-                h2 ChatApp
+                h2 Chatick App
+
+
+
             // PAGE BODY. AUTHENTICATION FORM
             form.form-horizontal(action='/chat', method='post')
                 //EMAIL block

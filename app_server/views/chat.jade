@@ -2,14 +2,10 @@ extends layout
 
 block body
     div
-    .container
-        .col-md-12
-
-
-
+        .col-xs-12
             // PAGE HEADER
             .page-header.text-center
-                h2 ChatApp
+                h2 Chatick App
 
 
 
@@ -21,7 +17,7 @@ block body
                             a(data-toggle='collapse', href='#chatpanel') Username: #{username}
                     #chatpanel.panel-collapse.collapse
                         .panel-body
-                            .form-group.col-md-12
+                            .form-group.col-xs-12
                                 label(for='messageArea') Chat:
                                 textarea#messageArea.form-control(onclick='this.focus();this.select()', readonly='', style='\
                               resize: none;\
