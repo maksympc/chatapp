@@ -1,8 +1,6 @@
 //TODO: import mongoose
 //TODO: is used to communicate with MongoDB via mongoose
 var mongoose = require('mongoose');
-//TODO: used to close connection between app and DB
-var gracefulShutdown;
 //TODO:спрятать имя пользователя и пароль от базы
 //TODO:в зависимости от переменной окружения используем разные базы данных
 var dbURI = 'mongodb://localhost/chatick';
@@ -22,6 +20,8 @@ mongoose.connection.on('disconnected', function () {
     console.log('Mongoose disconnected');
 });
 
+//TODO: used to close connection between app and DB
+var gracefulShutdown;
 // To be called when process is restarted or terminated
 gracefulShutdown = function (msg, callback) {
     mongoose.connection.close(function () {
@@ -50,3 +50,4 @@ process.on('SIGTERM', function () {
 });
 
 require('./users');
+require('./messages');

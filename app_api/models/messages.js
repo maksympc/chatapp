@@ -4,5 +4,7 @@ var mongoose = require('mongoose');
 var messagesSchema = new mongoose.Schema({
     email: {type: String, required: true},
     message: {type: String, required: true, maxLength: 200},
-    createdOn: {type: Date, "default": Date.now}
+    createdOn: {type: Date, default: Date.now}
 });
+
+mongoose.model('Message', messagesSchema, 'messages');

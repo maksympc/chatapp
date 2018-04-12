@@ -9,3 +9,4 @@
 2.1 Chat area
 2.2 Active users area
 2.3 Message length restriction (200 symbols)
+

@@ -4,16 +4,16 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var bodyParser = require("body-parser");
-require('./app_server/models/db');
+require('./app_api/models/db');
 
 //TODO:перенесли положение routes
-var indexRouter = require('./app_server/routes/index');
-var usersRouter = require('./app_server/routes/users');
+var routes = require('./app_server/routes/index');
+var routesApi = require('./app_api/routes/index');
 
 var app = express();
 
 // view engine setup
-//TODO:перенесли положение views
+//TODO:перенесли views
 app.set('views', path.join(__dirname, 'app_server', 'views'));
 app.set('view engine', 'jade');
 
@@ -26,8 +26,8 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/', routes);
+app.use('/api', routesApi);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -44,5 +44,6 @@ app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
 });
+
 
 module.exports = app;
