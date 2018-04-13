@@ -18,13 +18,15 @@ passport.use(new LocalStrategy({
                 if (!user) {
                     return done(null, false, {message: 'Can\'t find user with such email:' + usernameField});
                 }
+                // если пользователь забанен, запретить вход
+                if (user.ban === true) {
+                    return done(null, false, {message: 'User with email:' + usernameField + " was banned! Try to ask admin to unban!"});
+                }
                 // пользователь найден, но пароль пользователя не верен
                 if (!user.validPassword(password)) {
                     return done(null, false, {message: 'Incorrect password for user, with email:' + usernameField});
                 }
-                // если пароль верен, продолжаем
-                // если было изменение имени, заменить имя пользователя в базе
-
+                // если пароль верен и пользователь не забанен, продолжаем
                 return done(null, user);
             });
     })
