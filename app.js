@@ -1,10 +1,10 @@
 // used to load JWT_SECRET token form .env file;
 require('dotenv').load();
-// import logger configuration
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
+// import logger configuration
 var logger = require('./logger');
 var bodyParser = require('body-parser');
 // подключаем passport
@@ -24,7 +24,7 @@ var app = express();
 app.set('views', path.join(__dirname, 'app_server', 'views'));
 app.set('view engine', 'jade');
 
-app.use(require('morgan'));
+app.use(require('morgan')('combined', {stream: logger.stream}));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());

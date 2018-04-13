@@ -8,70 +8,75 @@ var updateJsonResponse = function (res, status, data) {
     res.json(data);
 };
 
-module.exports.register = function (req, res) {
-    logger.debug('Authentication controller:#register with params:', req.body);
-    //get request's param
-    var username = req.body.username;
-    var email = req.body.email;
-    let password = req.body.password;
-
-    // check presence of request params
-    if (!username || !email || !password) {
-        updateJSONresponse(res, 400, {message: "Can't register user, all fields required!"});
-        logger.debug('Authentication controller:#register response:', res.body);
-        return;
-    }
-
-    // create new User
-    var user = new User();
-    user.username = username;
-    user.email = email;
-    user.setPassword(password);
-
-    user.save(function (err) {
-        var token;
-        if (err) {
-            updateJsonResponse(res, 404, err);
-            logger.debug('Authentication controller:#register response:', res.body);
-            return;
-        } else {
-            token = user.generateJwt();
-            logger.debug('Authentication controller:#register response:', res.body);
-            updateJsonResponse(res, 201, {"token": token});
-        }
-    });
-    logger.debug('Authentication controller:#register response:', res);
-};
-
+// обработка входа пользователя
 module.exports.login = function (req, res) {
-    logger.debug('Authentication controller:#login with params:', req.body);
+    logger.debug('Authentication controller:#login with params:\n', req.body);
     var username = req.body.username;
     var email = req.body.email;
     var password = req.body.password;
+    var token;
 
-    // check presence of request params
+    // проверка на наличие параметров в запросе!
     if (!username || !email || !password) {
-        updateJSONresponse(res, 400, {message: "Can't login user, all fields required!"});
-        logger.debug('Authentication controller:#register response:', res.body);
+        updateJsonResponse(res, 400, {message: "Can't login user, all fields required!"});
+        logger.debug("'Authentication controller: #login: not enough params");
         return;
     }
 
-    passport.authenticate('local', function (err, user, info) {
-        var token;
-        // If error occurred
+    // Поиск пользователя в базе по имейлу
+    User.findOne({email: email}, function (err, user) {
+        logger.debug("Try to find user while logging!");
+        // Обрабатываем ошибки
         if (err) {
-            updateJsonResponse(res, 404, err);
-            logger.debug('Authentication controller:#register response:', res.body);
-            return;
+            updateJsonResponse(res, 400, err);
+            logger.debug("Authentication controller: #login error:", err);
         }
-        if (user) {
-            token = user.generateJwt();
-            updateJsonResponse(res, 200, {token: token});
-            logger.debug('Authentication controller:#register response:', res.body);
-        } else {
-            updateJsonResponse(res, 404, info);
-            logger.debug('Authentication controller:#register response:', res.body);
+        // если пользователь не был ранее найден, создаем нового пользователя
+        if (!user) {
+            logger.debug("Authentication controller: #login. User with email:", email, " was not found, create new user.");
+            let user = new User();
+            user.username = username;
+            user.email = email;
+            user.setPassword(password);
+            user.save(function (err) {
+                if (err) {
+                    updateJsonResponse(res, 404, err);
+                    logger.debug("Authentication controller: #login. Can't create user with email:", email, ". Error was occurred:", err);
+                } else {
+                    token = user.generateJwt();
+                    updateJsonResponse(res, 201, {token: token});
+                    logger.debug("Authentication controller: #login. User with email:", email, ". was successfully created!");
+                }
+            });
         }
-    })(req, res);
-    logger.debug('Authentication controller:#register response:', res);
+        // Если пользователь присутствует в базе, проверяем его с помощью passport аутентификации
+        else {
+            passport.authenticate('local', function (err, user, info) {
+                if (err) {
+                    logger.debug("error is occurred!", err);
+                    updateJsonResponse(res, 404, err);
+                    return;
+                }
+                if (user) {
+                    // если у пользователя был изменен username, сохраняем изменения в базе данных
+                    if (user.username !== username) {
+                        user.username = username;
+                        user.save(function (err) {
+                            if (err) {
+                                updateJsonResponse(res, 404, err);
+                                logger.debug("Authentication controller: #login. Can't create user with email:", email, ". Error was occurred:", err);
+                            }
+                        });
+                    }
+                    // формируем и возвращаем token
+                    token = user.generateJwt();
+                    updateJsonResponse(res, 200, {token: token});
+                    logger.debug("Authentication controller: #login. User with email:", email, " was successfully sign in!");
+                } else {
+                    updateJsonResponse(res, 404, info);
+                    logger.debug("Authentication controller: #login. User with email:", email, " has invalid credentials!");
+                }
+            })(req, res);
+        }
+    });
 };

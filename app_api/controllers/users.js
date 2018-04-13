@@ -168,35 +168,3 @@ module.exports.offlineUser = function (req, res) {
         updateJsonResponse(res, 404, {"message": "Can't set user offline. Cause: Not found, email is required!"});
     }
 };
-
-
-module.exports.createOrUpdateUser = function (req, res) {
-    console.log(req.body);
-
-    var email = req.body.email;
-    var username = req.body.username;
-    var password = req.body.password;
-
-
-    if (email && username && password) {
-        User.update(
-            //query
-            {email: email},
-            //TODO: hide plain password, will be changed to HASH value
-            {email: email, username: username, password: password},
-            // if user is absent, this options will create new one
-            {upsert: true, setDefaultsOnInsert: true},
-            //callback, after fulfilling operation
-            function (err, user) {
-                if (err) {
-                    updateJsonResponse(res, 400, err);
-                } else {
-                    updateJsonResponse(res, 201, user);
-                }
-            });
-    }
-    else {
-        updateJsonResponse(res, 404, {"message": "Can't create/update user. Cause: email, username, password is required!"});
-    }
-
-};

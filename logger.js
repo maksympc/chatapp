@@ -12,11 +12,6 @@ var logger = new winston.Logger({
             maxFiles: 10,
             colorize: false
         }),
-        new winston.transports.File({
-            filename: './logs/errors.log',
-            level: 'error',
-            maxsize: 10485760, //10MB
-        }),
         new winston.transports.Console({
             level: 'debug',
             handleExceptions: true,

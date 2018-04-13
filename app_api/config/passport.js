@@ -7,23 +7,24 @@ var User = mongoose.model('User');
 passport.use(new LocalStrategy({
         usernameField: 'email'
     },
-    function (username, password, done) {
+    function (usernameField, password, done) {
         // ищем юзера в базе по емайлу
-        User.findOne({email: username},
+        User.findOne({email: usernameField},
             function (err, user) {
                 // возникла ошибка при поиске пользователя
                 if (err) {
                     return done(err);
                 }
-                // пользователь не был найден
                 if (!user) {
-                    return done(null, false, {message: 'Can\'t find user with such email:' + username});
+                    return done(null, false, {message: 'Can\'t find user with such email:' + usernameField});
                 }
                 // пользователь найден, но пароль пользователя не верен
                 if (!user.validPassword(password)) {
-                    return done(null, false, {message: 'Incorrect password for user, with email:' + username});
+                    return done(null, false, {message: 'Incorrect password for user, with email:' + usernameField});
                 }
-                // если пароль верен, возвращаем пользователя
+                // если пароль верен, продолжаем
+                // если было изменение имени, заменить имя пользователя в базе
+
                 return done(null, user);
             });
     })

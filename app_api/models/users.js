@@ -31,10 +31,11 @@ usersSchema.methods.validPassword = function (password) {
 usersSchema.methods.generateJwt = function (password) {
     var expiry = new Date();
     expiry.setDate(expiry.getDate() + 7);
-
     return jwt.sign({
         _id: this.id,
         email: this.email,
+        role: this.role,
+        username: this.username,
         exp: parseInt(expiry.getTime() / 1000)
     }, process.env.JWT_SECRET);
 };
