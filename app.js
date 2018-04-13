@@ -1,23 +1,30 @@
+// used to load JWT_SECRET token form .env file;
+require('dotenv').load();
+// import logger configuration
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var bodyParser = require("body-parser");
-require('./app_api/models/db');
+var logger = require('./logger');
+var bodyParser = require('body-parser');
+// подключаем passport
+var passport = require('passport');
 
-//TODO:перенесли положение routes
+require('./app_api/models/db');
+// запрашиваем после подключения моделей, так как они используются при проверке
+require('./app_api/config/passport');
+
+//TODO: обновили положение routes
 var routes = require('./app_server/routes/index');
 var routesApi = require('./app_api/routes/index');
 
 var app = express();
 
-// view engine setup
-//TODO:перенесли views
+//TODO: обновили положение views
 app.set('views', path.join(__dirname, 'app_server', 'views'));
 app.set('view engine', 'jade');
 
-app.use(logger('dev'));
+app.use(require('morgan'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
@@ -25,6 +32,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
+
+app.use(passport.initialize());
 
 app.use('/', routes);
 app.use('/api', routesApi);

@@ -46,3 +46,4 @@ typings/
 // custom config
 .idea/
 .directory
+.env

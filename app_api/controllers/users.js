@@ -1,6 +1,6 @@
 //TODO: used to work as API with users
 var mongoose = require('mongoose');
-var users = mongoose.model('User');
+var User = mongoose.model('User');
 
 var updateJsonResponse = function (res, status, content) {
     res.status(status);
@@ -8,7 +8,7 @@ var updateJsonResponse = function (res, status, content) {
 };
 
 module.exports.getAllUsers = function (req, res) {
-    users.find().exec(
+    User.find().exec(
         function (err, users) {
             if (err) {
                 updateJsonResponse(res, 404, err);
@@ -24,12 +24,12 @@ module.exports.banUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        users.find({'email': userEmail})
-            .exec(function (err, user) {
+        User.find({'email': userEmail},
+            function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.push({ban: false});
+                    user.ban = false;
                     user.save(function (err, user) {
                         if (err) {
                             updateJsonResponse(res, 404, err);
@@ -49,12 +49,12 @@ module.exports.unbanUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        users.find({'email': userEmail})
-            .exec(function (err, user) {
+        User.find({'email': userEmail},
+            function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.push({ban: false});
+                    user.ban = false;
                     user.save(function (err, user) {
                         if (err) {
                             updateJsonResponse(res, 404, err);
@@ -74,12 +74,12 @@ module.exports.muteUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        users.find({'email': userEmail})
-            .exec(function (err, user) {
+        User.find({'email': userEmail},
+            function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.push({mute: true});
+                    user.mute = true;
                     user.save(function (err, user) {
                         if (err) {
                             updateJsonResponse(res, 404, err);
@@ -99,12 +99,12 @@ module.exports.unmuteUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        users.find({'email': userEmail})
-            .exec(function (err, user) {
+        User.find({'email': userEmail},
+            function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.push({mute: false});
+                    user.mute = false;
                     user.save(function (err, user) {
                         if (err) {
                             updateJsonResponse(res, 404, err);
@@ -124,12 +124,12 @@ module.exports.onlineUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        users.find({'email': userEmail})
-            .exec(function (err, user) {
+        User.find({'email': userEmail},
+            function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.push({online: true});
+                    user.online = true;
                     user.save(function (err, user) {
                         if (err) {
                             updateJsonResponse(res, 404, err);
@@ -149,12 +149,12 @@ module.exports.offlineUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        users.find({'email': userEmail})
-            .exec(function (err, user) {
+        User.find({'email': userEmail},
+            function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.push({online: false});
+                    user.online = false;
                     user.save(function (err, user) {
                         if (err) {
                             updateJsonResponse(res, 404, err);
@@ -179,7 +179,7 @@ module.exports.createOrUpdateUser = function (req, res) {
 
 
     if (email && username && password) {
-        users.update(
+        User.update(
             //query
             {email: email},
             //TODO: hide plain password, will be changed to HASH value
