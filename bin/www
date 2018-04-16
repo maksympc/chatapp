@@ -7,6 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('chat:server');
 var http = require('http');
+var sockets = require('../sockets/index');
 
 /**
  * Get port from environment and store in Express.
@@ -88,30 +89,5 @@ function onListening() {
     debug('Listening on ' + bind);
 }
 
-
-// подсоиденяемся к серверу
-var io = require('socket.io')(server);
-// храним пользователей онлайн
-users = [];
-// обрабатываем действие при присоединении пользователя
-io.on('connection', function (socket) {
-    console.log('A user connected');
-    socket.on('setUsername', function (data) {
-        console.log(data);
-        // если существует пользователь с таким именем, запретить вход
-        if (users.indexOf(data) > -1) {
-            socket.emit('userExists', data + ' username is taken! Try some other username.');
-        } else {
-            // добавить пользователя, сообщить, что пользователь был добавлен
-            users.push(data);
-            socket.emit('userSet', {username: data});
-        }
-    });
-    // при получении сообщения, делаем рассылку на всех остальных пользователей
-    socket.on('msg', function (data) {
-        //Send message to everyone
-        io.sockets.emit('newmsg', data);
-    })
-});
-
-
+// ИНИЦИАЛИЗАЦИЯ СОКЕТОВ
+sockets.init(server);

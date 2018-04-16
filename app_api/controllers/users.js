@@ -24,19 +24,12 @@ module.exports.banUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        User.find({'email': userEmail},
+        User.findOneAndUpdate({'email': userEmail}, {$set: {ban: true}}, {new: true},
             function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.ban = false;
-                    user.save(function (err, user) {
-                        if (err) {
-                            updateJsonResponse(res, 404, err);
-                        } else {
-                            updateJsonResponse(res, 201, user);
-                        }
-                    });
+                    updateJsonResponse(res, 201, user);
                 }
             });
     } else {
@@ -49,19 +42,12 @@ module.exports.unbanUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        User.find({'email': userEmail},
+        User.findOneAndUpdate({'email': userEmail}, {$set: {ban: false}}, {new: true},
             function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.ban = false;
-                    user.save(function (err, user) {
-                        if (err) {
-                            updateJsonResponse(res, 404, err);
-                        } else {
-                            updateJsonResponse(res, 201, user);
-                        }
-                    });
+                    updateJsonResponse(res, 201, user);
                 }
             });
     } else {
@@ -74,19 +60,12 @@ module.exports.muteUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        User.find({'email': userEmail},
+        User.findOneAndUpdate({'email': userEmail}, {$set: {mute: true}}, {new: true},
             function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.mute = true;
-                    user.save(function (err, user) {
-                        if (err) {
-                            updateJsonResponse(res, 404, err);
-                        } else {
-                            updateJsonResponse(res, 201, user);
-                        }
-                    });
+                    updateJsonResponse(res, 201, user);
                 }
             });
     } else {
@@ -99,19 +78,12 @@ module.exports.unmuteUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        User.find({'email': userEmail},
+        User.findOneAndUpdate({'email': userEmail}, {$set: {mute: false}}, {new: true},
             function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.mute = false;
-                    user.save(function (err, user) {
-                        if (err) {
-                            updateJsonResponse(res, 404, err);
-                        } else {
-                            updateJsonResponse(res, 201, user);
-                        }
-                    });
+                    updateJsonResponse(res, 201, user);
                 }
             });
     } else {
@@ -124,19 +96,12 @@ module.exports.onlineUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        User.find({'email': userEmail},
+        User.findOneAndUpdate({'email': userEmail}, {$set: {online: true}}, {new: true},
             function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.online = true;
-                    user.save(function (err, user) {
-                        if (err) {
-                            updateJsonResponse(res, 404, err);
-                        } else {
-                            updateJsonResponse(res, 201, user);
-                        }
-                    });
+                    updateJsonResponse(res, 201, user);
                 }
             });
     } else {
@@ -149,19 +114,12 @@ module.exports.offlineUser = function (req, res) {
     var userEmail = req.params.email;
     // update user status
     if (userEmail) {
-        User.find({'email': userEmail},
+        User.findOneAndUpdate({'email': userEmail}, {$set: {online: false}}, {new: true},
             function (err, user) {
                 if (err) {
                     updateJsonResponse(res, 404, err);
                 } else {
-                    user.online = false;
-                    user.save(function (err, user) {
-                        if (err) {
-                            updateJsonResponse(res, 404, err);
-                        } else {
-                            updateJsonResponse(res, 201, user);
-                        }
-                    });
+                    updateJsonResponse(res, 201, user);
                 }
             });
     } else {

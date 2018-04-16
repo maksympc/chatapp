@@ -1,11 +1,20 @@
 doctype html
-html
+html(lang='en')
     head
+        meta(charset='UTF-8')
         title Chat page
+        link(rel='stylesheet', href='/stylesheets/chat.css')
+        script(src='https://code.jquery.com/jquery-3.3.1.min.js')
         script(src='/socket.io/socket.io.js')
         script(src='/javascripts/chat.js')
     body
-        #error-container
-        input#name(type='text', name='name', value='', placeholder='Enter your name!')
-        button(type='button', name='button', onclick='setUsername()')
-            | Let me chat!
+        ul.pages
+            li.chat.page
+                .chatArea
+                    ul.messages
+                input.inputMessage(placeholder='Type here...')
+            li.login.page
+                .form
+                    h3.title What's your nickname?
+                    input.usernameInput(type='text', maxlength='14')
+
