@@ -3,7 +3,7 @@ var LocalStrategy = require('passport-local').Strategy;
 var mongoose = require('mongoose');
 var User = mongoose.model('User');
 
-// TODO: задаем стратегию аутентификации
+// TODO: задаем стратегию аутентификации и входа пользователя
 passport.use(new LocalStrategy({
         usernameField: 'email'
     },
