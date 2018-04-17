@@ -47,7 +47,6 @@ function getOnlineUsernames(usersMap) {
 index.init = function (server) {
     var io = require('socket.io')(server);
 
-
     // проверка, что пользователь авторизован и следует обрабатывать ивенты, которые он выбрасывает
     // io.set('authorization', socketioJwt.authorize({
     //     secret: jwtSecret,
@@ -163,9 +162,9 @@ index.init = function (server) {
         // 2. Разбан пользователя, обновляем статус в базе.
         // 3. Отправляем другим пользователям, что пользователь был разбанен. Выход
         socket.on('unban user', (email) => {
-            logger.debug('Socket #unban user:', socket.username);
-            socket.emit('unban user', {username: socket.username});
-            socket.broadcast.emit('unbanned', {username: socket.username})
+            logger.debug('Socket #unban user:', socket.user);
+            socket.emit('unban user', {username: socket.user});
+            socket.broadcast.emit('unbanned', {username: socket.user})
         });
 
         // TODO: need to implement
@@ -176,9 +175,9 @@ index.init = function (server) {
         // 3. Отправляем пользователю, который имеет такой имел, что он был mute
         // 3. Отправляем другим пользователям, что пользователь был mute. Выход
         socket.on('mute user', (email) => {
-            logger.debug('Socket #mute user:', socket.username);
-            socket.emit('mute user', {username: socket.username});
-            socket.broadcast.emit('muted', {username: socket.username})
+            logger.debug('Socket #mute user:', socket.user);
+            socket.emit('mute user', {username: socket.user});
+            socket.broadcast.emit('muted', {username: socket.user})
         });
 
         // TODO: need to implement
@@ -189,9 +188,9 @@ index.init = function (server) {
         // 3. Отправляем пользователю, который имеет такой имел, что он был unmute
         // 3. Отправляем другим пользователям, что пользователь был unmute. Выход
         socket.on('unmute user', (email) => {
-            logger.debug('Socket #unmute user:', socket.username);
-            socket.broadcast.emit('unmute user', {username: socket.username});
-            socket.broadcast.emit('unmuted', {username: socket.username})
+            logger.debug('Socket #unmute user:', socket.user);
+            socket.broadcast.emit('unmute user', {username: socket.user});
+            socket.broadcast.emit('unmuted', {username: socket.user})
         });
 
         //TODO: need to implement

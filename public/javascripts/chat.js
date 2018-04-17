@@ -180,6 +180,7 @@ $(function () {
         });
     }
 
+    // Выбор случайного цвета из набора цветов, согласно хешу пользователя
     // Gets the color of a username through our hash function
     function getUsernameColor(username) {
         // Compute hash code
@@ -218,9 +219,9 @@ $(function () {
     // Click events
 
     // Focus input when clicking anywhere on login page
-    $loginPage.click(function () {
-        $currentInput.focus();
-    });
+    // $loginPage.click(function () {
+    //     $currentInput.focus();
+    // });
 
     // Focus input when clicking on the message input's border
     $inputMessage.click(function () {
@@ -231,12 +232,8 @@ $(function () {
 
     // Whenever the server emits 'login', log the login message
     socket.on('login', function (data) {
+        console.log(JSON.stringify(data));
         connected = true;
-        // Display the welcome message
-        var message = "Welcome to Socket.IO Chat – ";
-        log(message, {
-            prepend: true
-        });
         addParticipantsMessage(data);
     });
 
@@ -247,12 +244,14 @@ $(function () {
 
     // Whenever the server emits 'user joined', log it in the chat body
     socket.on('user joined', function (data) {
+        console.log(data);
         log(data.username + ' joined');
         addParticipantsMessage(data);
     });
 
     // Whenever the server emits 'user left', log it in the chat body
     socket.on('user left', function (data) {
+        console.log(JSON.stringify(data));
         log(data.username + ' left');
         addParticipantsMessage(data);
         removeChatTyping(data);
