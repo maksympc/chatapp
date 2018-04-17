@@ -23,6 +23,9 @@ $(function () {
     var lastTypingTime;
     var $currentInput = $usernameInput.focus();
 
+    //connecting with previoulsy get jwt token (from POST request);
+    //var token = jwtToken FROM POST request to /login path
+    //var socket = io('',{query:{'token=':token}});
     var socket = io();
 
     function addParticipantsMessage(data) {
