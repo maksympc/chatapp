@@ -8,7 +8,7 @@ var updateJsonResponse = function (res, status, data) {
     res.json(data);
 };
 
-// обработка входа пользователя
+// обработка входа пользователя, как результат, либо сообщение об ошибке, либо возвращаем токен
 module.exports.login = function (req, res) {
     logger.debug('Authentication controller:#login with params:\n', req.body);
     var username = req.body.username;

@@ -1,4 +1,5 @@
-//TODO: контроллер отвечает за выдачу главной страницы приложениея
+//
+var path = require('path');
 module.exports.index = function (req, res, next) {
-    res.render('index', {title: 'ChatApp. Login page'});
+    res.sendFile(path.join(__dirname, '../views', 'login.html'));
 };

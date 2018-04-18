@@ -14,8 +14,6 @@ var usersSchema = new mongoose.Schema(
         // statuses
         mute: {type: Boolean, required: true, default: false},
         ban: {type: Boolean, required: true, default: false},
-        //should remove online status as it redundant, store users, which are online in map, with jwt and email.
-        online: {type: Boolean, required: true, default: false}
     }
 );
 
@@ -37,7 +35,6 @@ usersSchema.methods.generateJwt = function (password) {
             email: this.email,
             role: this.role,
             username: this.username,
-            mute: this.mute,
             exp: parseInt(expiry.getTime() / 1000)
         },
         process.env.JWT_SECRET

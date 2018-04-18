@@ -15,8 +15,6 @@ router.post('/users/ban/:email', ctrlUsers.banUser);
 router.post('/users/unban/:email', ctrlUsers.unbanUser);
 router.post('/users/mute/:email', ctrlUsers.muteUser);
 router.post('/users/unmute/:email', ctrlUsers.unmuteUser);
-router.post('/users/online/:email', ctrlUsers.onlineUser);
-router.post('/users/offline/:email', ctrlUsers.offlineUser);
 
 //TODO:authentication mapping, combined register and login logic in login function
 router.post('/login', ctrlAuthentication.login);

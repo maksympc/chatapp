@@ -90,39 +90,3 @@ module.exports.unmuteUser = function (req, res) {
         updateJsonResponse(res, 404, {"message": "Can't unmute user. Cause: Not found, email is required!"});
     }
 };
-
-module.exports.onlineUser = function (req, res) {
-    // get user email as request param
-    var userEmail = req.params.email;
-    // update user status
-    if (userEmail) {
-        User.findOneAndUpdate({'email': userEmail}, {$set: {online: true}}, {new: true},
-            function (err, user) {
-                if (err) {
-                    updateJsonResponse(res, 404, err);
-                } else {
-                    updateJsonResponse(res, 201, user);
-                }
-            });
-    } else {
-        updateJsonResponse(res, 404, {"message": "Can't set user online. Cause: Not found, email is required!"});
-    }
-};
-
-module.exports.offlineUser = function (req, res) {
-    // get user email as request param
-    var userEmail = req.params.email;
-    // update user status
-    if (userEmail) {
-        User.findOneAndUpdate({'email': userEmail}, {$set: {online: false}}, {new: true},
-            function (err, user) {
-                if (err) {
-                    updateJsonResponse(res, 404, err);
-                } else {
-                    updateJsonResponse(res, 201, user);
-                }
-            });
-    } else {
-        updateJsonResponse(res, 404, {"message": "Can't set user offline. Cause: Not found, email is required!"});
-    }
-};
