@@ -16,6 +16,7 @@ router.post('/chat', ctrlChat.post);
 router.get('/test', function (req, res, next) {
     res.render('test');
 });
+router.get('/jwt', ctrlMain.jwt);
 
 //TODO: экспорт маршрутов для дальнешей с ними работы
 module.exports = router;

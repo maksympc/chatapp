@@ -1,8 +1,8 @@
 var logger = require('../logger');
 var usersService = require('./services/users');
 var messagesService = require('./services/messages');
+var socketioJwt = require('socketio-jwt');
 
-//var socketioJwt = require('socketio-jwt');
 var index = {};
 //store all users emails with socket objects
 var usersOnlineStorage = new Map();
@@ -38,15 +38,21 @@ function checkLastMessageTimeById(id) {
 }
 
 index.init = function (server) {
-    var io = require('socket.io')(server);
+    let io = require('socket.io')(server);
 
-    // проверка, что пользователь авторизован и следует обрабатывать ивенты, которые он выбрасывает
-    // io.set('authorization', socketioJwt.authorize({
-    //     secret: jwtSecret,
-    //     handshake: true
-    // }));
+    io.use(socketioJwt.authorize({
+        secret: process.env.JWT_SECRET,
+        handshake: true
+    }));
 
     io.on('connection', (socket) => {
+        // залогировать пользователя
+        logger.debug('Token: ' + socket.decoded_token);
+        logger.debug('Get all users:' + usersService.getAllUsers());
+        socket.emit('test', {
+            data: usersService.getAllUsers()
+        });
+
         // 0. После POST-запроса на быструю регистрацию/авторизацию создается/обновляется запись в БД, формируется и возвращается jwt-token.
         // 1. На фронте выбрасываем событие 'add user', необходимое для оповещения остальных пользователей, что появился новый участник
         // 1.1. Проверяем, не был ли пользователь ранее добавлен в список online-участников, если true, игнорируем событие. Выход
