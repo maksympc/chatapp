@@ -65,6 +65,7 @@ module.exports.checkBanUser = function (email) {
         .exec()
         .then(function (user) {
             if (user) {
+                logger.debug("banned!");
                 return {status: true, ban: user.ban};
             } else {
                 return {status: false, message: 'User with email was not found!'};

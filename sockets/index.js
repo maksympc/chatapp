@@ -45,76 +45,41 @@ index.init = function (server) {
         timeout: 15000 // 15 seconds to send the authentication message
     }))
         .on('authenticated', (socket) => {
-                logger.debug('Token: ' + JSON.stringify(socket.decoded_token));
+                logger.debug('AuthToken: ' + JSON.stringify(socket.decoded_token));
 
-                // 0. После POST-запроса на быструю регистрацию/авторизацию создается/обновляется запись в БД, формируется и возвращается jwt-token.
-                // 1. На фронте выбрасываем событие 'add user', необходимое для оповещения остальных пользователей, что появился новый участник
-                // 1.1. Проверяем, не был ли пользователь ранее добавлен в список online-участников, если true, игнорируем событие. Выход
-                // 2. Отправляем исходному сокету событие, в котором содержится история переписки, количество и список участников, которые онлайн.
-                // 2.1. Проверяем роль пользователя, если админ, дополнительно делаем emit-сообщения, со всеми юзерами, присутствующими в базе.
-                // 3. Отправляем остальным сокетам, имя нового пользователя, количество и список участников, которые онлайн. Выход
-                socket.on('add user', (user) => {
-                    logger.debug('Socket #add user:', user);
-                    // если клиент отсутствсует, добавляем его real-time хранилище
-                    if (!usersOnlineStorage.get(socket.id)) {
-                        // we store the user in the socket session for this client
-                        socket.user = user;
-                        usersOnlineStorage.set(socket.id, socket);
+                if (!usersOnlineStorage.get(socket.id)) {
+                    // we store the user in the socket session for this client
+                    socket.user = {
+                        username: socket.decoded_token.username,
+                        email: socket.decoded_token.email,
+                        role: socket.decoded_token.role,
+                    };
+                    usersOnlineStorage.set(socket.id, socket);
+                    logger.debug('Socket user is absent in onlineUsers: #add user:' + JSON.stringify(socket.user));
 
-                        socket.emit('login', {
-                            numUsers: usersOnlineStorage.size,
-                            messages: '',
-                            onlineUsers: getOnlineUsers(usersOnlineStorage)
-                        });
-                        // echo globally (all clients) that a person has connected
-                        socket.broadcast.emit('user joined', {
-                            numUsers: usersOnlineStorage.size,
-                            username: socket.user,
-                            onlineUsers: getOnlineUsers(usersOnlineStorage)
-                        });
-                    }
-                });
 
-                // 0. После POST-запроса на быструю регистрацию/авторизацию создается/обновляется запись в БД, формируется и возвращается jwt-token.
-                // 1. Проверяем, не был ли пользователь ранее добавлен в список online-участников, если true, игнорируем событие. Выход
-                // 2. Отправляем исходному сокету событие, в котором содержится история переписки, количество и список участников, которые онлайн.
-                // 2.1. Всем админам дополнительно делаем emit-сообщения, со всеми юзерами, присутствующими в базе.
-                // 3. Отправляем остальным сокетам, имя нового пользователя, количество и список участников, которые онлайн. Выход
-                // Принимаем на вход пользователя, объект вида:
-                // {
-                //      email:e@mail.com,
-                //      username:username,
-                //      role:admin
-                // }
-                socket.on('add usernew', (user) => {
-                    logger.debug('Socket try to #add user:', user.email);
-                    // если клиент отсутствсует, добавляем его real-time хранилище
-                    if (!usersOnlineStorage.get(socket.id)) {
-                        logger.debug('Socket user is absent in onlineUsers: #add user:', user.email);
-                        // we store the user in the socket session for this client
-                        socket.user = user;
-                        usersOnlineStorage.set(socket.id, socket);
-
-                        socket.emit('login', {
-                            numUsers: usersOnlineStorage.size,
-                            messages: messagesService.getAllMessages(),
-                            onlineUsers: getOnlineUsers(usersOnlineStorage)
-                        });
-                        // оповещаем всех, кто админ, новым спииском онлайн-пользователей
-                        for (let sock of usersOnlineStorage.values()) {
-                            if (sock.user.role.toLowerCase() === 'admin') {
-                                sock.emit('get all users', {
-                                    allUsers: usersService.getAllUsers()
-                                });
-                            }
+                    // оповещаем всех, кто админ, новым спииском онлайн-пользователей
+                    for (let sock of usersOnlineStorage.values()) {
+                        if (sock.user.role.toLowerCase() === 'admin') {
+                            sock.emit('get all users', {
+                                allUsers: usersService.getAllUsers()
+                            });
                         }
-                        socket.broadcast.emit('user joined', {
-                            numUsers: usersOnlineStorage.size,
-                            username: socket.user.username,
-                            onlineUsers: getOnlineUsers(usersOnlineStorage)
-                        });
                     }
-                });
+
+                    socket.emit('login', {
+                        numUsers: usersOnlineStorage.size,
+                        messages: messagesService.getAllMessages(),
+                        onlineUsers: getOnlineUsers(usersOnlineStorage)
+                    });
+
+                    // echo globally (all clients) that a person has connected
+                    socket.broadcast.emit('user joined', {
+                        numUsers: usersOnlineStorage.size,
+                        username: socket.user.username,
+                        onlineUsers: getOnlineUsers(usersOnlineStorage)
+                    });
+                }
 
                 // when the user disconnects.. perform this
                 // 0. На фронте инициируется событие разрыва связи
@@ -155,11 +120,11 @@ index.init = function (server) {
                     usersService
                         .checkBanUser(messageItem.email)
                         .then(banCheck => {
-
-
+                                logger.debug('Check ban status:', messageItem.email);
                                 // был ли забанен
                                 if (banCheck.status) {
                                     if (banCheck.ban) {
+                                        logger.debug('User was banned:', messageItem.email);
                                         socket.disconnect(true);
                                     } else {
 
@@ -171,14 +136,15 @@ index.init = function (server) {
                                                 muteCheck => {
                                                     if (muteCheck.status) {
                                                         if (muteCheck.mute) {
+                                                            logger.debug('User was muted:', messageItem.email);
                                                             socket.emit('info', {message: "Can't add message, cause: you are muted!"});
                                                         } else {
-
 
                                                             // время крайнего коммента
                                                             let lastMessageTime = checkLastMessageTimeById(socket.id);
                                                             if (!lastMessageTime.status) {
-                                                                socket.emit('info', {info: "Can't add message, you should wait for " + lastMessageTime.wait + " sec!"});
+                                                                logger.debug('Timeout error. Need to wait:', messageItem.email + ", " + lastMessageTime.wait + " sec");
+                                                                socket.emit('info', {message: "Can't add message, you should wait for " + lastMessageTime.wait + " sec!"});
                                                                 return;
                                                             }
 
@@ -188,15 +154,15 @@ index.init = function (server) {
                                                                 .then(messageRes => {
                                                                     if (messageRes.status) {
                                                                         updateLastMessageTimeById(socket.id);
+                                                                        socket.emit('info', {message: 'new message added!'});
                                                                         socket.broadcast.emit('new message', {
                                                                             username: socket.user.username,
-                                                                            message: messageRes.messageItem.message,
-                                                                            createdOn: messageRes.messageItem.createdOn
+                                                                            message: messageRes.message.message,
+                                                                            createdOn: messageRes.message.createdOn
                                                                         });
-
-
                                                                     } else {
-                                                                        socket.emit(info, {message: 'Can\'t add message, cause:' + messageRes.message});
+                                                                        logger.debug('Can\'t add message:', messageRes.message);
+                                                                        socket.emit('info', {message: 'Can\'t add message, cause:' + messageRes.message});
                                                                     }
                                                                 });
                                                         }
@@ -242,7 +208,7 @@ index.init = function (server) {
                 // 3. Разрыв соединения с пользователем, который имеет такой email.
                 // 4. Отправляем другим пользователям, что пользователь был забанен. Выход
                 socket.on('ban user', (email) => {
-                    logger.debug('Socket #ban user:', socket.user);
+                    logger.debug('Socket #ban user:', email);
                     // проверяем роль пользователя
                     if (socket.user.role.toLowerCase() !== 'admin') {
                         socket.emit('info', {message: 'Permission denied, your haven\'t admin rights!'});
@@ -329,7 +295,7 @@ index.init = function (server) {
                                 for (let sock of usersOnlineStorage.value()) {
                                     if (sock.user.email === email) {
                                         sock.emit('mute user');
-                                        socket.broadcast.emit('muted', {username: muteUserRes.user.username})
+                                        socket.broadcast.emit('muted', {username: muteRes.user.username})
                                     }
                                 }
                                 socket.emit('info', {message: 'User was successfully muted! Email:' + muteRes.user.email});
@@ -347,14 +313,16 @@ index.init = function (server) {
                 // 3. Отправляем пользователю, который имеет такой имел, что он был unmute
                 // 3. Отправляем другим пользователям, что пользователь был unmute. Выход
                 socket.on('unmute user', (email) => {
-                    logger.debug('Socket #unmute user:', socket.user);
+                    logger.debug('Socket #unmute user:', email);
 
                     if (socket.user.role.toLowerCase() !== 'admin') {
+                        logger.debug('Permission denied, your haven\'t admin rights!');
                         socket.emit('info', {message: 'Permission denied, your haven\'t admin rights!'});
                         return;
                     }
 
                     if (socket.user.email.toLowerCase() === email.toLowerCase()) {
+                        logger.debug('You can\'t unmute yourself!');
                         socket.emit('info', {message: 'You can\'t unmute yourself!'});
                         return;
                     }
@@ -421,5 +389,4 @@ index.init = function (server) {
             }
         );
 };
-
 module.exports = index;
