@@ -12,30 +12,39 @@
     <button id="goodLogin">Good Login</button>
     <button id="badLogin">Bad Login</button>
     <button id="logout">Logout</button>
+    <br/>
+    <button id="ban user">ban</button>
+    <button id="unban user">unban</button>
+    <button id="mute user">mute</button>
+    <button id="unmute user">unmute</button>
+    <button id="new message">new message</button>
+    <button id="get all users">get all users</button>
+    <button id="remove messages">remove messages</button>
 </div>
 <div><textarea id="token"></textarea></div>
-<div><textarea id="users"></textarea></div>
 
 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
         $('#test').click(function () {
-            if (localStorage.token) {
-                document.getElementById("token").innerText = localStorage.token;
-                alert('Hello! Your token is:' + localStorage.token);
 
-                let socket = io({'query': 'token=' + localStorage.token});
 
-                socket.on('test', function (data) {
-                    console.log(JSON.stringify(data));
-                    document.getElementById("users").innerText = JSON.stringify(data);
-                });
-            }
-            else {
-                document.getElementById("token").innerText = '';
-                alert('Hello! Empty localStorage!');
-            }
+            let socket = io.connect('http://localhost:3000');
+            socket.on('connect', function () {
+                socket.emit('authenticate', {token: localStorage.token})
+                    .on('authenticated', function () {
+
+
+                        
+
+                    })
+                    .on('unauthorized', function (message) {
+                        console.log("unauthorized: " + JSON.stringify(message));
+                        alert('Your token has been expired! Please login again!');
+                        window.location.replace("https://www.google.com/");
+                    })
+            });
         });
         $('#goodLogin').click(function () {
             $.ajax({

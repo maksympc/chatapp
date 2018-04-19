@@ -2,30 +2,42 @@ var mongoose = require('mongoose');
 var Message = mongoose.model('Message');
 
 module.exports.getAllMessages = function () {
-    Message.find().exec(
-        function (err, messages) {
-            if (err)
-                return {"status": false, "message": err};
-            else
-                return {"status": true, "messageItems": messages};
-        }
-    );
+    return Message
+        .find()
+        .exec()
+        .then(messages => {
+            if (messages) {
+                return {status: true, messages: messages};
+            } else {
+                return {status: false, message: "Messages weren't found!"}
+            }
+        })
+        .catch(error => {
+            return {status: false, message: error}
+        });
 };
 
 module.exports.addMessage = function (messageItem) {
     if (messageItem.email && messageItem.message) {
-        Message.create({
-            email: messageItem.email,
-            message: messageItem.message,
-            createdOn: Date.now()
-        }, function (err, message) {
-            if (err)
-                return {"status": false, "message": err};
-            else
-                return {"status": true, "messageItem": message};
-        });
+        return Message
+            .create({
+                email: messageItem.email,
+                message: messageItem.message,
+                createdOn: Date.now()
+            })
+            .then(message => {
+                if (message) {
+                    return {status: true, message: message};
+                }
+            })
+            .catch(error => {
+                return {status: false, message: error};
+            })
     } else {
-        return {"status": false, "message": "Can't add message. Cause: Not found, email and message is required!"}
+        return Promise.resolve({
+            status: false,
+            message: "Can't add message. Cause: Not found, email and message are required!"
+        });
     }
 };
 

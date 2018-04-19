@@ -1,4 +1,5 @@
 //TODO: used to work as API with users
+var logger = require('../../logger');
 var mongoose = require('mongoose');
 var User = mongoose.model('User');
 
@@ -8,6 +9,9 @@ var updateJsonResponse = function (res, status, content) {
 };
 
 module.exports.getAllUsers = function (req, res) {
+    logger.debug('====== User controller, #getAllUsers:');
+    logger.debug('!!!User:' + JSON.stringify(User.toLocaleString()));
+
     User.find().exec(
         function (err, users) {
             if (err) {

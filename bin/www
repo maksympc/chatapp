@@ -7,7 +7,6 @@
 var app = require('../app');
 var debug = require('debug')('chat:server');
 var http = require('http');
-var sockets = require('../sockets/index');
 
 /**
  * Get port from environment and store in Express.
@@ -90,4 +89,5 @@ function onListening() {
 }
 
 // ИНИЦИАЛИЗАЦИЯ СОКЕТОВ
+let sockets = require('../sockets/index');
 sockets.init(server);
