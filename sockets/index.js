@@ -19,13 +19,13 @@ function getOnlineUsers(usersMap) {
     return users;
 }
 
-function updateLastMessageTimeById(id) {
-    usersTimer.set(id, Date.now());
+function updateLastMessageTimeByEmail(email) {
+    usersTimer.set(email, Date.now());
 }
 
-function checkLastMessageTimeById(id) {
-    if (usersTimer.get(id)) {
-        let difference = Date.now() - usersTimer.get(id);
+function checkLastMessageTimeByEmail(email) {
+    if (usersTimer.get(email)) {
+        let difference = Date.now() - usersTimer.get(email);
         // difference should be greater than 15 seconds
         if (difference < 15 * 1000)
             return {status: false, wait: ((15 * 1000 - difference) / 1000).toFixed(2)};
@@ -47,59 +47,84 @@ index.init = function (server) {
         .on('authenticated', (socket) => {
                 logger.debug('AuthToken: ' + JSON.stringify(socket.decoded_token));
 
-                if (!usersOnlineStorage.get(socket.id)) {
-                    // we store the user in the socket session for this client
+                //TODO:предварительно ОК!
+                // Как только было инициировано подключение
+                // Проверяем, если оно уже существует
+                if (!usersOnlineStorage.get(socket.decoded_token.email)) {
+                    // сохраняем в сессии клиента
                     socket.user = {
                         username: socket.decoded_token.username,
                         email: socket.decoded_token.email,
                         role: socket.decoded_token.role,
                     };
-                    usersOnlineStorage.set(socket.id, socket);
-                    logger.debug('Socket user is absent in onlineUsers: #add user:' + JSON.stringify(socket.user));
+                    // добавляем в сторедж
+                    usersOnlineStorage.set(socket.decoded_token.email, socket);
+                    logger.debug('Init new socket connection. User is absent in onlineUsers: #add user:' + JSON.stringify(socket.user));
 
-
-                    // оповещаем всех, кто админ, новым спииском онлайн-пользователей
-                    for (let sock of usersOnlineStorage.values()) {
-                        if (sock.user.role.toLowerCase() === 'admin') {
-                            sock.emit('get all users', {
-                                allUsers: usersService.getAllUsers()
-                            });
+                    // оповещаем всех, кто админ, новым списком онлайн-пользователей
+                    usersService.getAllUsers().then(response => {
+                            if (response.status) {
+                                // TODO:вынести в отдельную функцию
+                                for (let sock of usersOnlineStorage.values()) {
+                                    if (sock.user.role.toLowerCase() === 'admin') {
+                                        sock.emit('get all users', response.users);
+                                    }
+                                }
+                            }
+                            else {
+                                for (let sock of usersOnlineStorage.values()) {
+                                    if (sock.user.role.toLowerCase() === 'admin') {
+                                        sock.emit('info', response.message);
+                                    }
+                                }
+                            }
                         }
-                    }
+                    );
 
-                    socket.emit('login', {
-                        numUsers: usersOnlineStorage.size,
-                        messages: messagesService.getAllMessages(),
-                        onlineUsers: getOnlineUsers(usersOnlineStorage)
+                    // отправляем юзеру историю переписки
+                    messagesService.getAllMessages().then(response => {
+                        if (response.status) {
+                            socket.emit('login', {
+                                numUsers: usersOnlineStorage.size,
+                                messages: response.messages,
+                                onlineUsers: getOnlineUsers(usersOnlineStorage)
+                            });
+
+                        }
                     });
 
                     // echo globally (all clients) that a person has connected
+                    // отправляем пользователям сообщение о новом юзере онлайн
                     socket.broadcast.emit('user joined', {
                         numUsers: usersOnlineStorage.size,
                         username: socket.user.username,
                         onlineUsers: getOnlineUsers(usersOnlineStorage)
                     });
+                } else {
+                    socket.emit('second connection', {message: "You have the right to keep only one connection. Close other app instances!"});
+                    return;
                 }
 
+                // ok
                 // when the user disconnects.. perform this
                 // 0. На фронте инициируется событие разрыва связи
                 // 1. Если пользователь присутствует в хранилище пользователей, удаляем его по ключу
                 // 2. Отправляем остальным сокетам, имя отключившегося пользователя, новое количество и список online-участников. Выход
                 socket.on('disconnect', () => {
-                    logger.debug('Socket #disconnect:', socket.user.email);
+                    logger.debug('Socket #disconnect:', socket.decoded_token.email);
                     // удаляем пользователя из хранилища
-                    if (usersOnlineStorage.get(socket.id)) {
-                        usersOnlineStorage.delete(socket.id);
+                    if (usersOnlineStorage.get(socket.decoded_token.email)) {
+                        usersOnlineStorage.delete(socket.decoded_token.email);
                         // echo globally that this client has left
                         socket.broadcast.emit('user left', {
                             numUsers: usersOnlineStorage.size,
-                            username: socket.user.username,
+                            username: socket.decoded_token.username,
                             onlineUsers: getOnlineUsers(usersOnlineStorage)
                         });
                     }
                 });
 
-
+                //ok
                 // when the client emits 'new message', this listens and executes
                 // 0. На фронте инициируется событие нового сообщения
                 // 1. Лезем в базу, вытаскиваем пользователя по email
@@ -113,72 +138,104 @@ index.init = function (server) {
                 // на входе объект вида:
                 // {
                 // email:e@mail.com,
+                // username: username,
                 // message:text message
                 // }
                 socket.on('new message', (messageItem) => {
                     logger.debug('Socket try to add #new message:', messageItem);
-                    usersService
-                        .checkBanUser(messageItem.email)
-                        .then(banCheck => {
-                                logger.debug('Check ban status:', messageItem.email);
-                                // был ли забанен
-                                if (banCheck.status) {
-                                    if (banCheck.ban) {
-                                        logger.debug('User was banned:', messageItem.email);
-                                        socket.disconnect(true);
-                                    } else {
-
-
-                                        // был ли замучен
-                                        usersService
-                                            .checkMuteUser(messageItem.email)
-                                            .then(
-                                                muteCheck => {
-                                                    if (muteCheck.status) {
-                                                        if (muteCheck.mute) {
-                                                            logger.debug('User was muted:', messageItem.email);
-                                                            socket.emit('info', {message: "Can't add message, cause: you are muted!"});
-                                                        } else {
-
-                                                            // время крайнего коммента
-                                                            let lastMessageTime = checkLastMessageTimeById(socket.id);
-                                                            if (!lastMessageTime.status) {
-                                                                logger.debug('Timeout error. Need to wait:', messageItem.email + ", " + lastMessageTime.wait + " sec");
-                                                                socket.emit('info', {message: "Can't add message, you should wait for " + lastMessageTime.wait + " sec!"});
-                                                                return;
-                                                            }
-
-                                                            // добавляем в базу
-                                                            messagesService
-                                                                .addMessage(messageItem)
-                                                                .then(messageRes => {
-                                                                    if (messageRes.status) {
-                                                                        updateLastMessageTimeById(socket.id);
-                                                                        socket.emit('info', {message: 'new message added!'});
-                                                                        socket.broadcast.emit('new message', {
-                                                                            username: socket.user.username,
-                                                                            message: messageRes.message.message,
-                                                                            createdOn: messageRes.message.createdOn
-                                                                        });
-                                                                    } else {
-                                                                        logger.debug('Can\'t add message:', messageRes.message);
-                                                                        socket.emit('info', {message: 'Can\'t add message, cause:' + messageRes.message});
-                                                                    }
-                                                                });
-                                                        }
-                                                    } else {
-                                                        socket.emit('info', {message: 'Can\'t add message, cause:' + muteCheck.message});
-                                                    }
-                                                }
-                                            );
-                                    }
-                                } else {
-                                    socket.emit('info', {message: 'Can\'t add message, cause:' + banCheck.message});
+                    usersService.getBanUserStatus(messageItem.email)
+                    // проверяем на бан
+                        .then(banResponse => {
+                            logger.debug("then1#:" + JSON.stringify(banResponse));
+                            if (banResponse.status) {
+                                if (banResponse.ban) {
+                                    // TODO:проверить, удаляет ли из онланй-стореджа
+                                    logger.debug('User was banned and disconnected:', messageItem.email);
+                                    socket.disconnect(true);
+                                    return {status: false, message: 'user was disconnected'};
                                 }
+                                return {status: true}
                             }
-                        );
+                            return {status: false, message: banResponse.message};
+                        })
+                        //проверяем на mute
+                        .then((res) => {
+                            logger.debug("then2#:" + JSON.stringify(res));
+                            if (res.status) {
+                                usersService
+                                    .getMuteUserStatus(messageItem.email)
+                                    .then(muteResponse => {
+                                        if (muteResponse.status) {
+                                            if (muteResponse.mute) {
+                                                logger.debug('User was muted:', messageItem.email);
+                                                return {
+                                                    status: false,
+                                                    message: "Can't add message, cause: you are muted!"
+                                                };
+                                            }
+                                            return {status: true};
+                                        } else {
+                                            return {status: false, message: muteResponse.message};
+                                        }
+                                    })
+                                    // проверка последнего добавленного сообщения
+                                    .then((res) => {
+                                        logger.debug("then3#:" + JSON.stringify(res));
+                                        if (res.status) {
+                                            let lastMessageTime = checkLastMessageTimeByEmail(socket.user.email);
+                                            if (!lastMessageTime.status) {
+                                                logger.debug('Timeout error. Need to wait:', messageItem.email + ", " + lastMessageTime.wait + " sec");
+                                                return {
+                                                    status: false,
+                                                    message: "Can't add message, you should wait for " + lastMessageTime.wait + " sec!"
+                                                };
+                                            }
+                                            return {status: true};
+                                        }
+                                        return res;
+                                    })
+                                    // добавляем в базу
+                                    .then((res) => {
+                                        logger.debug("then4#:" + JSON.stringify(res));
+                                        if (res.status) {
+                                            messagesService.addMessage(messageItem).then(
+                                                addResponse => {
+                                                    if (addResponse.status) {
+                                                        updateLastMessageTimeByEmail(socket.user.email);
+                                                        socket.emit('info', {message: 'new message added!'});
+                                                        socket.broadcast.emit('new message', {
+                                                            username: socket.user.username,
+                                                            message: addResponse.message.message,
+                                                            createdOn: addResponse.message.createdOn
+                                                        });
+                                                        return;
+                                                    }
+                                                    return {
+                                                        status: false,
+                                                        message: 'Can\'t add message, cause:' + addResponse.message
+                                                    };
+                                                });
+                                            return {status: true};
+                                        }
+                                        return res;
+                                    })
+                                    //отправляем сообщение об ошибке пользователю
+                                    .then(res => {
+                                        logger.debug("then5#:" + JSON.stringify(res));
+                                        if (!res.status) {
+                                            socket.emit('info', res.message);
+                                        }
+                                    });
+                            }
+                        })
+                        //отправляем сообщение об ошибке пользователю
+                        .catch(res => {
+                            logger.debug("then6#:" + JSON.stringify(res));
+                            if (!res.status) {
+                                socket.emit('info', res.message);
+                            }
+                        });
                 });
-
 
                 // when the client emits 'typing', we broadcast it to others
                 // Реализаия без проверок, дорого ходить в базу на каждое нажатие пользователя
@@ -201,6 +258,7 @@ index.init = function (server) {
                     });
                 });
 
+                // ok
                 // 0. На фронте инициируется событие бан пользователя
                 // 1. Проверяем статус пользователя, который отправил это событие.
                 // 1.1 Вытаскиваем пользователя из базы. Проверяем, является ли он админом. Если нет - Выход.
@@ -223,22 +281,27 @@ index.init = function (server) {
                     usersService
                         .banUser(email)
                         .then(banRes => {
+                                logger.debug('banRes:', JSON.stringify(banRes));
                                 if (banRes.status) {
-                                    // смотрим все сокет-соединения с данным email и отрубаем
-                                    for (let sock of usersOnlineStorage.value()) {
+                                    usersOnlineStorage.forEach(sock => {
+                                        // смотрим все сокет-соединения с данным email и отрубаем
                                         if (sock.user.email === email) {
+                                            logger.debug('BAN, found user in onlineStorage:', JSON.stringify(banRes));
                                             let username = sock.user.username;
                                             sock.disconnect(true);
+                                            socket.emit('info', {message: "user:" + email + ", was successfully banned!"});
                                             socket.broadcast.emit('banned', {username: username});
                                         }
-                                    }
+                                    });
                                 } else {
                                     socket.emit('info', {message: 'Can\'t ban user, cause:' + banRes.message});
                                 }
                             }
                         );
+                    socket.emit('info', {message: "user:" + email + ", was successfully banned!"});
                 });
 
+                // ok
                 // 0. На фронте инициируется событие разбан пользователя
                 // 1. Проверяем статус пользователя, который отправил это событие.
                 // 1.1 Вытаскиваем пользователя из базы. Проверяем, является ли он админом. Если нет - Выход.
@@ -269,6 +332,8 @@ index.init = function (server) {
                         });
                 });
 
+
+                // ok
                 // 0. На фронте инициируется событие mute пользователя
                 // 1. Проверяем статус пользователя, который отправил это событие.
                 // 1.1 Вытаскиваем пользователя из базы. Проверяем, является ли он админом. Если нет - Выход.
@@ -292,7 +357,9 @@ index.init = function (server) {
                         .then(muteRes => {
                             if (muteRes.status) {
                                 // оповещаем пользователя, что он был замУчен
-                                for (let sock of usersOnlineStorage.value()) {
+
+
+                                for (let sock of usersOnlineStorage.values()) {
                                     if (sock.user.email === email) {
                                         sock.emit('mute user');
                                         socket.broadcast.emit('muted', {username: muteRes.user.username})
@@ -306,6 +373,7 @@ index.init = function (server) {
 
                 });
 
+                // ok
                 // 0. На фронте инициируется событие unmute пользователя
                 // 1. Проверяем статус пользователя, который отправил это событие.
                 // 1.1 Вытаскиваем пользователя из базы. Проверяем, является ли он админом. Если нет - Выход.
@@ -331,7 +399,7 @@ index.init = function (server) {
                         .unmuteUser(email)
                         .then(unmuteRes => {
                             if (unmuteRes.status) {
-                                for (let sock of usersOnlineStorage.value()) {
+                                for (let sock of usersOnlineStorage.values()) {
                                     if (sock.user.email === email) {
                                         sock.emit('unmute user');
                                         socket.broadcast.emit('unmuted', {username: unmuteRes.user.username})
@@ -344,13 +412,14 @@ index.init = function (server) {
                         });
                 });
 
+                // ok
                 // 0. На фронте инициируется событие get users
                 // 1. Проверяем статус пользователя, который отправил это событие.
                 // 1.1 Вытаскиваем пользователя из базы. Проверяем, является ли он админом. Если нет - Выход.
                 // 2. Вытаскиваем из базы всех зарегистрированных пользователей.
                 // 3. Отправляем текущему сокету, список всех зарегистрированных пользователей. Выход
                 socket.on('get all users', () => {
-                    logger.debug('Socket #get users:');
+                    logger.debug('Socket #get all users:');
                     if (socket.user.role.toLowerCase() !== 'admin') {
                         socket.emit('info', {message: 'Permission denied, your haven\'t admin rights!'});
                         return;
@@ -363,24 +432,29 @@ index.init = function (server) {
                             } else {
                                 socket.emit('info', {message: 'Can\'t get all users, cause:' + getAllRes.message});
                             }
-                        });
+                        }).catch(error => {
+                        socket.emit('info', {message: error});
+                    });
                 });
 
+                // ok
                 // 0. На фронте инициируется событие remove messages
                 // 1. Проверяем статус пользователя, который отправил это событие.
                 // 1.1 Вытаскиваем пользователя из базы. Проверяем, является ли он админом. Если нет - Выход.
                 // 2. Удаляются все сообщения в базе
                 // 3. Отправляем остальным сокетам, что история сообщений была удалена.
-                socket.on('remove messages', () => {
+                socket.on('remove all messages', () => {
                     logger.debug('Socket #remove messages:');
                     if (socket.user.role.toLowerCase() !== 'admin') {
                         socket.emit('info', {message: 'Permission denied, your haven\'t admin rights!'});
                         return;
                     }
 
-                    messagesService.removeAll().then(removeAllRes => {
+                    messagesService.removeMessages().then(removeAllRes => {
                         if (removeAllRes.status) {
-                            socket.broadcast.emit('remove messages', {username: socket.user.username});
+                            socket.emit('info', {message: 'All messages was removed!'});
+                            socket.emit('remove all messages', {username: socket.user.username});
+                            socket.broadcast.emit('remove all messages', {username: socket.user.username});
                         } else {
                             socket.emit('info', {message: 'Can\'t remove all messages!, cause:' + removeAllRes.message});
                         }

@@ -17,7 +17,8 @@ router.get('/test', function (req, res, next) {
     res.render('test');
 });
 router.get('/jwt', ctrlMain.jwt);
-
+//TODO: удалить маппинг и страницу
+router.get('/jwt1', ctrlMain.jwt1);
 //TODO: экспорт маршрутов для дальнешей с ними работы
 module.exports = router;
 

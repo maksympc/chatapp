@@ -7,7 +7,7 @@
 </head>
 
 <body>
-<h1>JWT</h1>
+<h1>JWT #1</h1>
 <div>
     <button id="test">Socket Auth</button>
     <button id="goodLogin">Login. Get token</button>
@@ -20,7 +20,8 @@
     <button id="unmute_user">unmute</button>
     <button id="new_message">new message</button>
     <button id="get_all_users">get all users</button>
-    <button id="remove_all_messages">remove all messages</button>
+    <button id="remove_messages">remove messages</button>
+
 </div>
 
 <div><textarea id="token" cols="40" rows="10"></textarea></div>
@@ -35,7 +36,7 @@
         $('#test').click(function () {
             socket = io.connect('http://localhost:3000');
             socket.on('connect', function () {
-                socket.emit('authenticate', {token: localStorage.token}).on('authenticated', function (message) {
+                socket.emit('authenticate', {token: localStorage.token1}).on('authenticated', function (message) {
 
 
                     $('#ban_user').click(function () {
@@ -52,18 +53,18 @@
                     $('#unmute_user').click(function () {
                         socket.emit('unmute user', 'maks@mail.com');
                     });
-                    $('#get_all_users').click(function () {
-                        socket.emit('get all users');
+                    $('#get_all_messages').click(function () {
+                        socket.emit('get all messages');
                     });
+
                     $('#new_message').click(function () {
                         socket.emit('new message', {
                             email: 'maks@mail.com',
-                            username: 'maks',
-                            message: 'super secret test message!!!'
+                            message: '!!!super secret test message!!!'
                         });
                     });
-                    $('#remove_all_messages').click(function () {
-                        socket.emit('remove all messages');
+                    $('#remove_messages').click(function () {
+                        socket.emit('remove messages');
                     });
 
                     //describe on events
@@ -122,7 +123,7 @@
                         let infoBlock = $('#info');
                         infoBlock.innerText = infoBlock.innerText + '\n' + data;
                     });
-                    socket.on('remove all messages', data => {
+                    socket.on('remove messages', data => {
                         console.log(JSON.stringify(data));
                         let infoBlock = $('#info');
                         infoBlock.innerText = infoBlock.innerText + '\n' + data;
@@ -137,22 +138,11 @@
                         let infoBlock = $('#info');
                         infoBlock.innerText = data;
                     });
-                    socket.on('disconnect', () => {
-                        alert('You were disconnected!');
-                        localStorage.token=null;
-                        window.location.replace("http://localhost:3000/");
-                    });
-                    socket.on('second connection', (data) => {
-                        alert('Message:' + data.message);
-                        localStorage.token=null;
-                        window.location.replace("http://localhost:3000/");
-                    });
                 })
                     .on('unauthorized', function (message) {
                         console.log("unauthorized: " + JSON.stringify(message));
                         alert('Your token has been expired! Please login again!');
-                        localStorage.token=null;
-                        window.location.replace("http://localhost:3000/");
+                        window.location.replace("https://www.google.com/");
                     })
             });
         });
@@ -163,13 +153,13 @@
                 type: "POST",
                 url: "/api/login",
                 data: {
-                    email: "admin@admin.com",
-                    username: "admin",
-                    password: "adminadmin"
+                    email: "maks@mail.com",
+                    username: "maks",
+                    password: "123123123"
                 },
                 success: function (data) {
-                    localStorage.token = data.token;
-                    document.getElementById("token").innerText = localStorage.token;
+                    localStorage.token1 = data.token;
+                    document.getElementById("token").innerText = localStorage.token1;
                 },
                 error: function () {
                     alert("Login Failed");

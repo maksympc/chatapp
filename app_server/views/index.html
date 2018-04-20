@@ -9,8 +9,10 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/jquery-validation@1.17.0/dist/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 
     <style type="text/css">
         body {
@@ -165,20 +167,59 @@
         }
     </style>
 
+
+    <!--validate password!-->
     <script type="text/javascript">
+
         function validatePassword() {
-            let password = document.getElementById("password").value;
-            let confirm = document.getElementById("confirm_password").value;
-            if (confirm !== password)
-                document.getElementById("confirm_password").setCustomValidity("Passwords Don't Match");
-            else
-                document.getElementById("confirm_password").setCustomValidity('');
+            let password = $("#password").val();
+            let confirm = $('#confirm_password').val();
+            if (password !== confirm) {
+                $('#confirm_password').get(0).setCustomValidity('Passwords Don\'t Match');
+                return false;
+            }
+            else {
+                $('#confirm_password').get(0).setCustomValidity('');
+                return true;
+            }
         }
+
+        $(document).ready(function () {
+            $("#signup_button").click(
+                function () {
+                    // todo: add validation to the params
+                    var validator = $("#form").validate();
+                    if (validator.form()) {
+                        if (validatePassword()) {
+                            $.ajax({
+                                type: "POST",
+                                url: "/api/login",
+                                data: {
+                                    email: $('#email').val(),
+                                    username: $('#username').val(),
+                                    password: $('#password').val(),
+                                },
+                                success: function (data) {
+                                    localStorage.token = data.token;
+                                    window.location.replace("http://localhost:3000/chat");
+                                    alert(localStorage.token);
+                                },
+                                error: function (error) {
+                                    console.log("Login Failed. Cause:" + JSON.stringify(error));
+                                    alert("Login Failed. Open console for more info. Cause:" + JSON.stringify(error));
+                                }
+                            });
+                        } else {
+                            alert('Submit: passwords don\'t match!');
+                        }
+                    }
+                });
+        });
     </script>
 </head>
 <body>
 <div class="signup-form">
-    <form action="/api/login" method="post">
+    <form id="form" action="#">
         <h2>Create an account</h2>
         <p class="hint-text">Sign up with your social media account or email address</p>
         <div class="social-btn text-center">
@@ -188,14 +229,15 @@
         </div>
         <div class="or-seperator"><b>or</b></div>
         <div class="form-group ">
-            <input type="text" class="form-control input-lg " name="username" placeholder="Username"
+            <input type="text" class="form-control input-lg " name="username" id="username" placeholder="Username"
                    required="required" pattern='[A-Za-zА-Яа-яЁё]{3,}'
                    title="Only Latin and Cyrillic alphabet are allowed. The minimum length is 3 characters."
                    value="username">
         </div>
         <div class="form-group ">
-            <input type="email" class="form-control input-lg" name="email" placeholder="Email Address"
-                   required="required" title="Input valid email address" value="username@mail.com">
+            <input type="email" class="form-control input-lg" name="email" id="email" placeholder="Email Address"
+                   required="required" title="Input valid email address"
+                   value="username@gg.com">
         </div>
         <div class="form-group">
             <input type="password" class="form-control input-lg" name="password" id="password" placeholder="Password"
@@ -207,7 +249,8 @@
                    placeholder="Confirm Password" required="required" onchange="validatePassword()">
         </div>
         <div class="form-group">
-            <button type="submit" class="btn btn-default btn-md btn-block signup-btn">Sign Up</button>
+            <button class="btn btn-default btn-md btn-block signup-btn" id="signup_button">Sign Up
+            </button>
         </div>
     </form>
 </div>

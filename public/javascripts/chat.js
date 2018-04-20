@@ -1,4 +1,4 @@
-$(function () {
+$(document).ready(function () {
     var FADE_TIME = 100; // ms
     var TYPING_TIMER_LENGTH = 500; // ms
     var COLORS = [
@@ -9,11 +9,9 @@ $(function () {
 
     // Initialize variables
     var $window = $(window);
-    var $usernameInput = $('.usernameInput'); // Input for username
     var $messages = $('.messages'); // Messages area
     var $inputMessage = $('.inputMessage'); // Input message input box
 
-    var $loginPage = $('.login.page'); // The login page
     var $chatPage = $('.chat.page'); // The chatroom page
 
     // Prompt for setting a username
@@ -21,13 +19,155 @@ $(function () {
     var connected = false;
     var typing = false;
     var lastTypingTime;
-    var $currentInput = $usernameInput.focus();
+    var $currentInput = $inputMessage.focus();
 
-    //connecting with previoulsy get jwt token (from POST request);
-    //var token = jwtToken FROM POST request to /login path
-    //var socket = io('',{query:{'token=':token}});
-    var socket = io();
+    // Инициализация сокет-соединения при подключении
+    var socket = io.connect('http://localhost:3000');
+    socket.on('connect', function () {
+        socket.emit('authenticate', {token: localStorage.token})
+            .on('authenticated', function (message) {
 
+
+
+                //TODO: describe ON events
+                socket.on('login', data => {
+                    console.log('ON login:' + JSON.stringify(data));
+                });
+                socket.on('user joined', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + data;
+                });
+                socket.on('info', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + data;
+                });
+                socket.on('new message', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
+                });
+                socket.on('banned', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
+                });
+                socket.on('unbanned', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
+                });
+                socket.on('mute user', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
+                });
+                socket.on('muted', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
+                });
+                socket.on('unmute user', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
+                });
+                socket.on('unmuted', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
+                });
+                socket.on('get all users', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
+                });
+                socket.on('remove all messages', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
+                });
+                socket.on('get all messages', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = infoBlock.innerText + data;
+                });
+                socket.on('user left', data => {
+                    console.log(JSON.stringify(data));
+                    let infoBlock = $('#info');
+                    infoBlock.innerText = data;
+                });
+                socket.on('disconnect', () => {
+                    alert('You were disconnected!');
+                    localStorage.token = null;
+                    window.location.replace("http://localhost:3000/");
+                });
+                socket.on('second connection', (data) => {
+                    alert('Message:' + data.message);
+                    localStorage.token = null;
+                    window.location.replace("http://localhost:3000/");
+                });
+
+
+                // TODO: ON-events C повторениями, пересмотреть!!!
+                // Socket events
+                // Whenever the server emits 'login', log the login message
+                // Как только пользователь зашел, оповестить других участников!
+                socket.on('login', function (data) {
+                    console.log("ON old login:" + JSON.stringify(data));
+                    connected = true;
+                    addParticipantsMessage(data);
+                });
+
+                // Whenever the server emits 'new message', update the chat body
+                socket.on('new message', function (data) {
+                    addChatMessage(data);
+                });
+
+                // Whenever the server emits 'user joined', log it in the chat body
+                socket.on('user joined', function (data) {
+                    console.log(data);
+                    log(data.username + ' joined');
+                    addParticipantsMessage(data);
+                });
+
+                // Whenever the server emits 'user left', log it in the chat body
+                socket.on('user left', function (data) {
+                    console.log(JSON.stringify(data));
+                    log(data.username + ' left');
+                    addParticipantsMessage(data);
+                    removeChatTyping(data);
+                });
+
+                // Whenever the server emits 'typing', show the typing message
+                socket.on('typing', function (data) {
+                    addChatTyping(data);
+                });
+
+                // Whenever the server emits 'stop typing', kill the typing message
+                socket.on('stop typing', function (data) {
+                    removeChatTyping(data);
+                });
+
+                socket.on('disconnect', function () {
+                    log('you have been disconnected');
+                });
+
+                socket.on('reconnect', function () {
+                    log('you have been reconnected');
+                    if (username) {
+                        socket.emit('add user', username);
+                    }
+                });
+
+                socket.on('reconnect_error', function () {
+                    log('attempt to reconnect has failed');
+                });
+            });
+    });
+
+    // обработка данных из login-ответа
     function addParticipantsMessage(data) {
         var message = '';
         if (data.numUsers === 1) {
@@ -39,19 +179,12 @@ $(function () {
     }
 
     // Sets the client's username
+    // TODO setUsername for user
     function setUsername() {
-        username = cleanInput($usernameInput.val().trim());
-
-        // If the username is valid
-        if (username) {
-            $loginPage.fadeOut();
-            $chatPage.show();
-            $loginPage.off('click');
-            $currentInput = $inputMessage.focus();
-
-            // Tell the server your username
-            socket.emit('add user', username);
-        }
+        $chatPage.show();
+        $currentInput = $inputMessage.focus();
+        // Tell the server your username
+        socket.emit('add user', username);
     }
 
     // Sends a chat message
@@ -212,74 +345,9 @@ $(function () {
         }
     });
 
+
+    //TODO: SOCKET ON EVENTS!
     $inputMessage.on('input', function () {
         updateTyping();
     });
-
-    // Click events
-
-    // Focus input when clicking anywhere on login page
-    // $loginPage.click(function () {
-    //     $currentInput.focus();
-    // });
-
-    // Focus input when clicking on the message input's border
-    $inputMessage.click(function () {
-        $inputMessage.focus();
-    });
-
-    // Socket events
-
-    // Whenever the server emits 'login', log the login message
-    socket.on('login', function (data) {
-        console.log(JSON.stringify(data));
-        connected = true;
-        addParticipantsMessage(data);
-    });
-
-    // Whenever the server emits 'new message', update the chat body
-    socket.on('new message', function (data) {
-        addChatMessage(data);
-    });
-
-    // Whenever the server emits 'user joined', log it in the chat body
-    socket.on('user joined', function (data) {
-        console.log(data);
-        log(data.username + ' joined');
-        addParticipantsMessage(data);
-    });
-
-    // Whenever the server emits 'user left', log it in the chat body
-    socket.on('user left', function (data) {
-        console.log(JSON.stringify(data));
-        log(data.username + ' left');
-        addParticipantsMessage(data);
-        removeChatTyping(data);
-    });
-
-    // Whenever the server emits 'typing', show the typing message
-    socket.on('typing', function (data) {
-        addChatTyping(data);
-    });
-
-    // Whenever the server emits 'stop typing', kill the typing message
-    socket.on('stop typing', function (data) {
-        removeChatTyping(data);
-    });
-
-    socket.on('disconnect', function () {
-        log('you have been disconnected');
-    });
-
-    socket.on('reconnect', function () {
-        log('you have been reconnected');
-        if (username) {
-            socket.emit('add user', username);
-        }
-    });
-
-    socket.on('reconnect_error', function () {
-        log('attempt to reconnect has failed');
-    });
-
 });
