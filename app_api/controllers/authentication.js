@@ -44,7 +44,7 @@ module.exports.login = function (req, res) {
                     logger.debug("Authentication controller: #login. Can't create user with email:", email, ". Error was occurred:", err);
                 } else {
                     token = user.generateJwt();
-                    updateJsonResponse(res, 201, {token: token});
+                    updateJsonResponse(res, 200, {token: token});
                     logger.debug("Authentication controller: #login. User with email:", email, ". was successfully created!");
                 }
             });

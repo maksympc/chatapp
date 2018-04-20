@@ -4,8 +4,60 @@
     <meta charset="UTF-8">
     <title>Socket.IO Chat Example</title>
     <link rel="stylesheet" href="/stylesheets/chat.css">
+
+    <style>
+        #usersdiv {
+            position: absolute;
+            z-index: 9;
+            background-color: #e0e0e0;
+            text-align: center;
+            border: 1px solid #d3d3d3;
+        }
+
+        #usersdivheader {
+            padding: 10px;
+            cursor: move;
+            z-index: 10;
+            background-color: greenyellow;
+            color: #fff;
+        }
+    </style>
+
+    <style>
+        #infodiv {
+            position: absolute;
+            z-index: 9;
+            background-color: #e0e0e0;
+            text-align: center;
+            border: 1px solid #d3d3d3;
+        }
+
+        #infodivheader {
+            padding: 10px;
+            cursor: move;
+            z-index: 10;
+            background-color: #00B7FF;
+            color: #fff;
+        }
+    </style>
+
 </head>
 <body>
+
+<div id="usersdiv">
+    <div id="usersdivheader">Online Users</div>
+    <p>Move</p>
+    <p>this</p>
+    <p>DIV</p>
+</div>
+
+<div id="infodiv">
+    <div id="infodivheader">Info messages</div>
+    <p>Move</p>
+    <p>this</p>
+    <p>DIV</p>
+</div>
+
 <ul class="pages">
     <li class="chat page">
         <div class="chatArea">
@@ -18,5 +70,95 @@
 <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/javascripts/chat.js"></script>
+
+<script>
+    //Make the DIV element draggagle:
+    dragElement(document.getElementById(("usersdiv")));
+
+    function dragElement(elmnt) {
+        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        if (document.getElementById(elmnt.id + "header")) {
+            /* if present, the header is where you move the DIV from:*/
+            document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        } else {
+            /* otherwise, move the DIV from anywhere inside the DIV:*/
+            elmnt.onmousedown = dragMouseDown;
+        }
+
+        function dragMouseDown(e) {
+            e = e || window.event;
+            // get the mouse cursor position at startup:
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            // call a function whenever the cursor moves:
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e = e || window.event;
+            // calculate the new cursor position:
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            // set the element's new position:
+            elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+            elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+            /* stop moving when mouse button is released:*/
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+    }
+</script>
+
+
+<script>
+    //Make the DIV element draggagle:
+    dragElement(document.getElementById(("infodiv")));
+
+    function dragElement(elmnt) {
+        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        if (document.getElementById(elmnt.id + "header")) {
+            /* if present, the header is where you move the DIV from:*/
+            document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        } else {
+            /* otherwise, move the DIV from anywhere inside the DIV:*/
+            elmnt.onmousedown = dragMouseDown;
+        }
+
+        function dragMouseDown(e) {
+            e = e || window.event;
+            // get the mouse cursor position at startup:
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            // call a function whenever the cursor moves:
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e = e || window.event;
+            // calculate the new cursor position:
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            // set the element's new position:
+            elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+            elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+            /* stop moving when mouse button is released:*/
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+    }
+</script>
+
 </body>
 </html>

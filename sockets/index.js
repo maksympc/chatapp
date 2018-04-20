@@ -47,7 +47,6 @@ index.init = function (server) {
         .on('authenticated', (socket) => {
                 logger.debug('AuthToken: ' + JSON.stringify(socket.decoded_token));
 
-                //TODO:предварительно ОК!
                 // Как только было инициировано подключение
                 // Проверяем, если оно уже существует
                 if (!usersOnlineStorage.get(socket.decoded_token.email)) {

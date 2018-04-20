@@ -24,7 +24,6 @@
 </div>
 
 <div><textarea id="token" cols="40" rows="10"></textarea></div>
-<div><textarea id="info" cols="40" rows="10"></textarea></div>
 
 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script type="text/javascript" src="/socket.io/socket.io.js"></script>
@@ -139,19 +138,19 @@
                     });
                     socket.on('disconnect', () => {
                         alert('You were disconnected!');
-                        localStorage.token=null;
+                        localStorage.token = null;
                         window.location.replace("http://localhost:3000/");
                     });
                     socket.on('second connection', (data) => {
                         alert('Message:' + data.message);
-                        localStorage.token=null;
+                        localStorage.token = null;
                         window.location.replace("http://localhost:3000/");
                     });
                 })
                     .on('unauthorized', function (message) {
                         console.log("unauthorized: " + JSON.stringify(message));
                         alert('Your token has been expired! Please login again!');
-                        localStorage.token=null;
+                        localStorage.token = null;
                         window.location.replace("http://localhost:3000/");
                     })
             });
@@ -197,9 +196,8 @@
         $('#logout').click(function () {
             localStorage.clear();
             document.getElementById("token").innerText = '';
+            socket.disconnect(true);
         });
-
-
     });
 </script>
 </body>

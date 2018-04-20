@@ -15,7 +15,7 @@ $(document).ready(function () {
     var $chatPage = $('.chat.page'); // The chatroom page
 
     // Prompt for setting a username
-    var username;
+    var user = {username: "aaaa", email: 'aaaa@admin.com', role: 'user'};
     var connected = false;
     var typing = false;
     var lastTypingTime;
@@ -23,15 +23,18 @@ $(document).ready(function () {
 
     // Инициализация сокет-соединения при подключении
     var socket = io.connect('http://localhost:3000');
+    $chatPage.show();
+    $currentInput = $inputMessage.focus();
+
     socket.on('connect', function () {
         socket.emit('authenticate', {token: localStorage.token})
             .on('authenticated', function (message) {
 
-
-
+                // если пользователь аутентифицировался, показываем страничку чата!
                 //TODO: describe ON events
                 socket.on('login', data => {
                     console.log('ON login:' + JSON.stringify(data));
+
                 });
                 socket.on('user joined', data => {
                     console.log(JSON.stringify(data));
@@ -156,8 +159,8 @@ $(document).ready(function () {
 
                 socket.on('reconnect', function () {
                     log('you have been reconnected');
-                    if (username) {
-                        socket.emit('add user', username);
+                    if (user) {
+                        socket.emit('add user', user);
                     }
                 });
 
@@ -171,21 +174,20 @@ $(document).ready(function () {
     function addParticipantsMessage(data) {
         var message = '';
         if (data.numUsers === 1) {
-            message += "there's 1 participant";
+            message += "there's 1 participant:" + JSON.stringify(data);
         } else {
-            message += "there are " + data.numUsers + " participants";
+            message += "there are " + data.numUsers + " participants. Data:" + JSON.stringify(data);
         }
+
         log(message);
     }
 
     // Sets the client's username
-    // TODO setUsername for user
-    function setUsername() {
-        $chatPage.show();
-        $currentInput = $inputMessage.focus();
-        // Tell the server your username
-        socket.emit('add user', username);
-    }
+    // // TODO setUsername for user
+    // function setUsername() {
+    //     // Tell the server your username
+    //     socket.emit('add user', username);
+    // }
 
     // Sends a chat message
     function sendMessage() {
@@ -195,12 +197,18 @@ $(document).ready(function () {
         // if there is a non-empty message and a socket connection
         if (message && connected) {
             $inputMessage.val('');
+            // добавляем сообщение в чат
             addChatMessage({
-                username: username,
+                email: user.email,
+                username: user.username,
                 message: message
             });
             // tell server to execute 'new message' and send along one parameter
-            socket.emit('new message', message);
+            socket.emit('new message', {
+                email: user.email,
+                username: user.username,
+                message: message
+            });
         }
     }
 
@@ -333,20 +341,15 @@ $(document).ready(function () {
         if (!(event.ctrlKey || event.metaKey || event.altKey)) {
             $currentInput.focus();
         }
+
         // When the client hits ENTER on their keyboard
         if (event.which === 13) {
-            if (username) {
-                sendMessage();
-                socket.emit('stop typing');
-                typing = false;
-            } else {
-                setUsername();
-            }
+            sendMessage();
+            socket.emit('stop typing');
+            typing = false;
         }
     });
 
-
-    //TODO: SOCKET ON EVENTS!
     $inputMessage.on('input', function () {
         updateTyping();
     });
