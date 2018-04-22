@@ -12,18 +12,17 @@ $(document).ready(function () {
     var $messages = $('.messages'); // Messages area
     var $inputMessage = $('.inputMessage'); // Input message input box
 
-    var $chatPage = $('.chat.page'); // The chatroom page
-
     // Prompt for setting a username
+    // get username from token
     var user = {username: "aaaa", email: 'aaaa@admin.com', role: 'user'};
-    var connected = false;
+    var connected = true;
     var typing = false;
     var lastTypingTime;
     var $currentInput = $inputMessage.focus();
 
     // Инициализация сокет-соединения при подключении
     var socket = io.connect('http://localhost:3000');
-    $chatPage.show();
+
     $currentInput = $inputMessage.focus();
 
     socket.on('connect', function () {
