@@ -1,3 +1,9 @@
+function parseJwt(token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace('-', '+').replace('_', '/');
+    return JSON.parse(window.atob(base64));
+}
+
 $(document).ready(function () {
     var FADE_TIME = 100; // ms
     var TYPING_TIMER_LENGTH = 500; // ms
@@ -7,119 +13,206 @@ $(document).ready(function () {
         '#3b88eb', '#3824aa', '#a700ff', '#d300e7'
     ];
 
-    // Initialize variables
     var $window = $(window);
-    var $messages = $('.messages'); // Messages area
-    var $inputMessage = $('.inputMessage'); // Input message input box
+    // ссылка на список ul сообщений чата
+    var $messages = $('#messages');
+    // input message box
+    var $inputMessage = $('#inputMessage');
 
-    // Prompt for setting a username
-    // get username from token
-    var user = {username: "aaaa", email: 'aaaa@admin.com', role: 'user'};
-    var connected = true;
+    // object, that contains all token's {email, role, username, exp, iat} fields
+    var user = parseJwt(localStorage.token);
+    // for typing socket event
     var typing = false;
+    // to track users input
     var lastTypingTime;
+    // фокусируемся на поле, при вводе сообщения
     var $currentInput = $inputMessage.focus();
 
-    // Инициализация сокет-соединения при подключении
-    var socket = io.connect('http://localhost:3000');
 
-    $currentInput = $inputMessage.focus();
+    // incoming value
+    // TODO: переписать с использованием более сложного объекта сообщения
+    function addParticipantsMessage(data) {
+        var message = '';
+        if (data.numUsers === 1) {
+            message += "there's 1 participant";
+        } else {
+            message += "there are " + data.numUsers + " participants";
+        }
+        log(message);
+    }
+
+    // Prevents input from having injected markup
+    function cleanInput(input) {
+        return $('<div/>').text(input).html();
+    }
+
+    // TODO: проверить методы
+    function sendMessage() {
+        var message = $inputMessage.val();
+        message = cleanInput(message);
+        if (message) {
+            $inputMessage.val('');
+            // TODO: перед добавлением сообщения сделать проверку на 15 секунд.
+            socket.emit('new message', {email: user.email, username: user.username, message: message})
+        }
+    }
+
+    // Log message
+    // TODO: создание элемента для печати сообщения.
+    function log(message, options) {
+        var $el = $('<li>').text(message);
+        addMessageElement($el, options);
+    }
+
+    // создание сообщение-чата в списке сообщений
+    // TODO: пересмотреть используемые методы
+    function addChatMessage(data, options) {
+        var $typingMessages = getTypingMessages(data);
+        options = options || {};
+
+        if ($typingMessages.length !== 0) {
+            options.fade = false;
+            $typingMessages.remove();
+        }
+        // создание элемента пользователя
+        var $usernameDiv = $('<span class="username"/>').text(data.username).css('color', getUsernameColor(data.username));
+        var $messageBodyDiv = $('<span class="messageBody">').text(data.message);
+
+        var typingClass = data.typing ? 'typing' : '';
+        var $messageDiv = $('<li class="message"/>').data('username', data.username).addClass(typingClass).append($usernameDiv, $messageBodyDiv);
+
+        addMessageElement($messageDiv, options);
+    }
+
+    // Добавить визуальное отображение, что кто-то печатает
+    function addChatTyping(data) {
+        data.typing = true;
+        data.message = 'is typing...';
+        addChatMessage(data);
+    }
+
+    // Убрать визуальное отображение, что кто-то печатает...
+    function removeChatTyping(data) {
+        getTypingMessages(data).fadeOut(function () {
+            $(this).remove();
+        })
+    }
+
+    // Adds a message element to the messages and scrolls to the bottom
+    // el - The element to add as a message
+    // options.fade - If the element should fade-in (default = true)
+    // options.prepend - If the element should prepend
+    //   all other messages (default = false)
+    function addMessageElement(el, options) {
+        var $el = $(el);
+        //default options
+        if (!options) {
+            options = {};
+        }
+        if (typeof options.fade === 'undefined') {
+            options.fade = true;
+        }
+        if (typeof options.prepend === 'undefined') {
+            options.prepend = false;
+        }
+
+        if (options.fade) {
+            $el.hide().fadeIn(FADE_TIME);
+        }
+        if (options.prepend) {
+            $messages.prepend($el);
+        } else {
+            $messages.append($el);
+        }
+        $messages[0].scrollTop = $messages[0].scrollHeight;
+    }
+
+    // Updates the typing event
+    function updateTyping() {
+        if (!typing) {
+            typing = true;
+            socket.emit('typing');
+        }
+        lastTypingTime = (new Date()).getTime();
+        setTimeout(function () {
+            var typingTimer = (new Date()).getTime();
+            var timeDiff = typingTimer - lastTypingTime;
+            if (timeDiff >= TYPING_TIMER_LENGTH && typing) {
+                socket.emit('stop typing');
+                typing = false;
+            }
+        }, TYPING_TIMER_LENGTH);
+    }
+
+    // TODO: пересмотреть функцию
+    // Gets the 'X is typing' messages of a user
+    function getTypingMessages(data) {
+        return $('.typing.message').filter(function (i) {
+            return $(this).data('username') === data.username;
+        });
+    }
+
+    // Gets the color of a username through our hash function
+    function getUsernameColor(username) {
+        // Compute hash code
+        var hash = 7;
+        for (var i = 0; i < username.length; i++) {
+            hash = username.charCodeAt(i) + (hash << 5) - hash;
+        }
+        // Calculate color
+        var index = Math.abs(hash % COLORS.length);
+        return COLORS[index];
+    }
+
+
+    // Keyboard events
+
+    $window.keydown(function (event) {
+        // Auto-focus the current input when a key is typed
+        if (!(event.ctrlKey || event.metaKey || event.altKey)) {
+            $currentInput.focus();
+        }
+        // TODO: отправляем сообщение
+        // When the client hits ENTER on their keyboard
+        if (event.which === 13) {
+            if (user) {
+                sendMessage();
+                socket.emit('stop typing');
+                typing = false;
+            }
+        }
+    });
+
+    // оповещаем, что пользователь вводит сообщение
+    $inputMessage.on('input', function () {
+        updateTyping();
+    });
+
+    // Click events
+
+    // Focus input when clicking on the message input's border
+    $inputMessage.click(function () {
+        $inputMessage.focus();
+    });
+
+
+    // dependency will placed in chat.html file
+    var socket = io();
 
     socket.on('connect', function () {
         socket.emit('authenticate', {token: localStorage.token})
             .on('authenticated', function (message) {
 
-                // если пользователь аутентифицировался, показываем страничку чата!
-                //TODO: describe ON events
-                socket.on('login', data => {
-                    console.log('ON login:' + JSON.stringify(data));
-
-                });
-                socket.on('user joined', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + data;
-                });
-                socket.on('info', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + data;
-                });
-                socket.on('new message', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
-                });
-                socket.on('banned', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
-                });
-                socket.on('unbanned', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
-                });
-                socket.on('mute user', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
-                });
-                socket.on('muted', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
-                });
-                socket.on('unmute user', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
-                });
-                socket.on('unmuted', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
-                });
-                socket.on('get all users', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
-                });
-                socket.on('remove all messages', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + '\n' + data;
-                });
-                socket.on('get all messages', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = infoBlock.innerText + data;
-                });
-                socket.on('user left', data => {
-                    console.log(JSON.stringify(data));
-                    let infoBlock = $('#info');
-                    infoBlock.innerText = data;
-                });
-                socket.on('disconnect', () => {
-                    alert('You were disconnected!');
-                    localStorage.token = null;
-                    window.location.replace("http://localhost:3000/");
-                });
-                socket.on('second connection', (data) => {
-                    alert('Message:' + data.message);
-                    localStorage.token = null;
-                    window.location.replace("http://localhost:3000/");
-                });
-
-
-                // TODO: ON-events C повторениями, пересмотреть!!!
-                // Socket events
                 // Whenever the server emits 'login', log the login message
-                // Как только пользователь зашел, оповестить других участников!
+                // {numUsers, messages[], onlineUsers[]}
                 socket.on('login', function (data) {
-                    console.log("ON old login:" + JSON.stringify(data));
-                    connected = true;
-                    addParticipantsMessage(data);
+
+                    // should parse data object
+                    // updateOnlineUsers(data.onlineUsers);
+                    // updateMessages(data.messages);
+
+                    // Display the welcome message
+                    addParticipantsMessage(data.numUsers);
                 });
 
                 // Whenever the server emits 'new message', update the chat body
@@ -129,15 +222,16 @@ $(document).ready(function () {
 
                 // Whenever the server emits 'user joined', log it in the chat body
                 socket.on('user joined', function (data) {
-                    console.log(data);
+                    // update online users
+                    // updateOnlineUsers(data.users);
                     log(data.username + ' joined');
-                    addParticipantsMessage(data);
+                    addParticipantsMessage(data.numUsers);
                 });
 
                 // Whenever the server emits 'user left', log it in the chat body
                 socket.on('user left', function (data) {
-                    console.log(JSON.stringify(data));
                     log(data.username + ' left');
+                    // updateOnlineUsers(data.onlineUsers)
                     addParticipantsMessage(data);
                     removeChatTyping(data);
                 });
@@ -152,204 +246,21 @@ $(document).ready(function () {
                     removeChatTyping(data);
                 });
 
-                socket.on('disconnect', function () {
-                    log('you have been disconnected');
-                });
 
-                socket.on('reconnect', function () {
-                    log('you have been reconnected');
-                    if (user) {
-                        socket.emit('add user', user);
-                    }
-                });
-
-                socket.on('reconnect_error', function () {
-                    log('attempt to reconnect has failed');
-                });
+            })
+            .on('disconnect', function () {
+                localStorage.token = null;
+                alert('you have been disconnected');
+                window.location.replace(window.location.href.slice(0, -3));
+            })
+            .on('reconnect', function () {
+                alert('you have been reconnected');
+            })
+            .on('reconnect_error', function () {
+                localStorage.token = null;
+                alert('attempt to reconnect has failed');
             });
     });
 
-    // обработка данных из login-ответа
-    function addParticipantsMessage(data) {
-        var message = '';
-        if (data.numUsers === 1) {
-            message += "there's 1 participant:" + JSON.stringify(data);
-        } else {
-            message += "there are " + data.numUsers + " participants. Data:" + JSON.stringify(data);
-        }
-
-        log(message);
-    }
-
-    // Sets the client's username
-    // // TODO setUsername for user
-    // function setUsername() {
-    //     // Tell the server your username
-    //     socket.emit('add user', username);
-    // }
-
-    // Sends a chat message
-    function sendMessage() {
-        var message = $inputMessage.val();
-        // Prevent markup from being injected into the message
-        message = cleanInput(message);
-        // if there is a non-empty message and a socket connection
-        if (message && connected) {
-            $inputMessage.val('');
-            // добавляем сообщение в чат
-            addChatMessage({
-                email: user.email,
-                username: user.username,
-                message: message
-            });
-            // tell server to execute 'new message' and send along one parameter
-            socket.emit('new message', {
-                email: user.email,
-                username: user.username,
-                message: message
-            });
-        }
-    }
-
-    // Log a message
-    function log(message, options) {
-        var $el = $('<li>').addClass('log').text(message);
-        addMessageElement($el, options);
-    }
-
-    // Adds the visual chat message to the message list
-    function addChatMessage(data, options) {
-        // Don't fade the message in if there is an 'X was typing'
-        var $typingMessages = getTypingMessages(data);
-        options = options || {};
-        if ($typingMessages.length !== 0) {
-            options.fade = false;
-            $typingMessages.remove();
-        }
-
-        var $usernameDiv = $('<span class="username"/>')
-            .text(data.username)
-            .css('color', getUsernameColor(data.username));
-        var $messageBodyDiv = $('<span class="messageBody">')
-            .text(data.message);
-
-        var typingClass = data.typing ? 'typing' : '';
-        var $messageDiv = $('<li class="message"/>')
-            .data('username', data.username)
-            .addClass(typingClass)
-            .append($usernameDiv, $messageBodyDiv);
-
-        addMessageElement($messageDiv, options);
-    }
-
-    // Adds the visual chat typing message
-    function addChatTyping(data) {
-        data.typing = true;
-        data.message = ' печатает...';
-        addChatMessage(data);
-    }
-
-    // Removes the visual chat typing message
-    function removeChatTyping(data) {
-        getTypingMessages(data).fadeOut(function () {
-            $(this).remove();
-        });
-    }
-
-    // Adds a message element to the messages and scrolls to the bottom
-    // el - The element to add as a message
-    // options.fade - If the element should fade-in (default = true)
-    // options.prepend - If the element should prepend
-    //   all other messages (default = false)
-    function addMessageElement(el, options) {
-        var $el = $(el);
-
-        // Setup default options
-        if (!options) {
-            options = {};
-        }
-        if (typeof options.fade === 'undefined') {
-            options.fade = true;
-        }
-        if (typeof options.prepend === 'undefined') {
-            options.prepend = false;
-        }
-
-        // Apply options
-        if (options.fade) {
-            $el.hide().fadeIn(FADE_TIME);
-        }
-        if (options.prepend) {
-            $messages.prepend($el);
-        } else {
-            $messages.append($el);
-        }
-        $messages[0].scrollTop = $messages[0].scrollHeight;
-    }
-
-    // Prevents input from having injected markup
-    function cleanInput(input) {
-        return $('<div/>').text(input).html();
-    }
-
-    // Updates the typing event
-    // Рассылка сообщений активности пользователя.
-    function updateTyping() {
-        if (connected) {
-            if (!typing) {
-                typing = true;
-                socket.emit('typing');
-            }
-            lastTypingTime = (new Date()).getTime();
-
-            setTimeout(function () {
-                var typingTimer = (new Date()).getTime();
-                var timeDiff = typingTimer - lastTypingTime;
-                if (timeDiff >= TYPING_TIMER_LENGTH && typing) {
-                    socket.emit('stop typing');
-                    typing = false;
-                }
-            }, TYPING_TIMER_LENGTH);
-        }
-    }
-
-    // Gets the 'X is typing' messages of a user
-    function getTypingMessages(data) {
-        return $('.typing.message').filter(function (i) {
-            return $(this).data('username') === data.username;
-        });
-    }
-
-    // Выбор случайного цвета из набора цветов, согласно хешу пользователя
-    // Gets the color of a username through our hash function
-    function getUsernameColor(username) {
-        // Compute hash code
-        var hash = 7;
-        for (var i = 0; i < username.length; i++) {
-            hash = username.charCodeAt(i) + (hash << 5) - hash;
-        }
-        // Calculate color
-        var index = Math.abs(hash % COLORS.length);
-        return COLORS[index];
-    }
-
-    // Keyboard events
-    // все, что вводит пользователь с клавиатуры перенаправлять в input форму
-    $window.keydown(function (event) {
-        // Auto-focus the current input when a key is typed
-        if (!(event.ctrlKey || event.metaKey || event.altKey)) {
-            $currentInput.focus();
-        }
-
-        // When the client hits ENTER on their keyboard
-        if (event.which === 13) {
-            sendMessage();
-            socket.emit('stop typing');
-            typing = false;
-        }
-    });
-
-    $inputMessage.on('input', function () {
-        updateTyping();
-    });
-});
+})
+;

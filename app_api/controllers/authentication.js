@@ -17,6 +17,7 @@ module.exports.login = function (req, res) {
     var token;
 
     // проверка на наличие параметров в запросе!
+    //TODO: проверить пароль
     if (!username || !email || !password) {
         updateJsonResponse(res, 400, {message: "Can't login user, all fields required!"});
         logger.debug("'Authentication controller: #login: not enough params");

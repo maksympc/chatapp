@@ -202,6 +202,13 @@ index.init = function (server) {
                                                     if (addResponse.status) {
                                                         updateLastMessageTimeByEmail(socket.user.email);
                                                         socket.emit('info', {message: 'new message added!'});
+                                                        // отправляем сообщение обратно пользователю
+                                                        socket.emit('new message', {
+                                                            username: socket.user.username,
+                                                            message: addResponse.message.message,
+                                                            createdOn: addResponse.message.createdOn
+                                                        });
+                                                        // оповещаем остальных пользователей
                                                         socket.broadcast.emit('new message', {
                                                             username: socket.user.username,
                                                             message: addResponse.message.message,
@@ -244,7 +251,7 @@ index.init = function (server) {
                 // 2. Отсылаем остальным пользователям, имя участника, который печатает
                 socket.on('typing', () => {
                     socket.broadcast.emit('typing', {
-                        username: socket.user
+                        username: socket.user.username
                     });
                 });
 
@@ -253,7 +260,7 @@ index.init = function (server) {
                 // 1. Отправляем событие остальным, что пользователь перестал печатать
                 socket.on('stop typing', () => {
                     socket.broadcast.emit('stop typing', {
-                        username: socket.user
+                        username: socket.user.username
                     });
                 });
 

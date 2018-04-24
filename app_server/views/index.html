@@ -1,262 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Index page</title>
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script type="text/javascript"
-            src="https://cdn.jsdelivr.net/npm/jquery-validation@1.17.0/dist/jquery.validate.min.js"></script>
-    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-
-    <style type="text/css">
-        body {
-            background: #FFF;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .form-control {
-            font-size: 16px;
-            box-shadow: none;
-            border: 0;
-            border-bottom: 1px dashed #e0e0e0;
-            border-radius: 0;
-        }
-
-        .form-control:focus {
-            border-bottom: 2px solid #e0e0e0;
-            box-shadow: none;
-        }
-
-        .btn {
-            border-radius: 5px;
-            outline: none !important;
-        }
-
-        .signup-form {
-            width: 480px;
-            margin: 0 auto;
-            padding: 30px 0;
-        }
-
-        .signup-form form {
-            margin-bottom: 20px;
-            background: #fff;
-            padding: 40px;
-        }
-
-        .signup-form a {
-            color: #000;
-        }
-
-        .signup-form a:hover {
-            color: #fff;
-        }
-
-        .signup-form h2 {
-            text-align: center;
-            font-size: 34px;
-            margin: 10px 0 15px;
-        }
-
-        .signup-form .hint-text {
-            color: #999;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .signup-form .form-group {
-            margin-bottom: 20px;
-        }
-
-        .signup-form .btn {
-            font-size: 18px;
-            line-height: 26px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .signup-btn {
-            color: #e0e0e0;
-            text-align: center;
-            transition: all 0.4s;
-        }
-
-        .facebook-btn i {
-            color: #000;
-            text-align: center;
-            transition: all 0.4s;
-        }
-
-        .twitter-btn i {
-            color: #000;
-            text-align: center;
-            transition: all 0.4s;
-        }
-
-        .google-btn i {
-            color: #000;
-            text-align: center;
-            transition: all 0.4s;
-        }
-
-        .signup-btn:hover {
-            background: #3ca84b;
-            color: #fff;
-        }
-
-        .facebook-btn:hover {
-            background: #335f8f;
-            color: #fff;
-        }
-
-        .twitter-btn:hover {
-            background: #4ab0d5;
-            color: #fff;
-        }
-
-        .google-btn:hover {
-            background: #c22d26;
-            color: #fff;
-        }
-
-        .or-seperator {
-            margin: 50px 0 15px;
-            text-align: center;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .or-seperator b {
-            padding: 0 10px;
-            width: 40px;
-            height: 40px;
-            font-size: 16px;
-            text-align: center;
-            line-height: 40px;
-            background: #fff;
-            display: inline-block;
-            border: 1px solid #e0e0e0;
-            border-radius: 50%;
-            position: relative;
-            top: -22px;
-            z-index: 1;
-        }
-
-        .social-btn .btn {
-            margin: 10px 0 0 15px;
-            font-size: 15px;
-            border-radius: 50px;
-            font-weight: normal;
-            border: none;
-            transition: all 0.4s;
-        }
-
-        .social-btn .btn:first-child {
-            margin-left: 0;
-        }
-
-        .social-btn .btn i {
-            float: left;
-            margin: 3px 10px;
-            font-size: 20px;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <title>Sign up page</title>
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
 
 
-    <!--validate password!-->
-    <script type="text/javascript">
-
-        function validatePassword() {
-            let password = $("#password").val();
-            let confirm = $('#confirm_password').val();
-            if (password !== confirm) {
-                $('#confirm_password').get(0).setCustomValidity('Passwords Don\'t Match');
-                return false;
-            }
-            else {
-                $('#confirm_password').get(0).setCustomValidity('');
-                return true;
-            }
-        }
-
-        $(document).ready(function () {
-            $("#signup_button").click(
-                function () {
-                    // todo: add validation to the params
-                    var validator = $("#form").validate();
-                    if (validator.form()) {
-                        if (validatePassword()) {
-                            $.ajax({
-                                type: "POST",
-                                url: "/api/login",
-                                data: {
-                                    email: $('#email').val(),
-                                    username: $('#username').val(),
-                                    password: $('#password').val(),
-                                },
-                                success: function (data) {
-                                    localStorage.token = data.token;
-                                    window.location.replace("http://localhost:3000/chat");
-                                    alert(localStorage.token);
-                                },
-                                error: function (error) {
-                                    console.log("Login Failed. Cause:" + JSON.stringify(error));
-                                    alert("Login Failed. Open console for more info. Cause:" + JSON.stringify(error));
-                                }
-                            });
-                        } else {
-                            alert('Submit: passwords don\'t match!');
-                        }
-                    }
-                });
-        });
-    </script>
 </head>
-<body style="background:#eeeeee">
-    <div class="jumbotron jumbotron-fluid ">
-    <div class="container">
-        <h1>Chatick App!</h1>
-        <p>Start messaging right now...</p>
+<body>
+
+<div class="login-page">
+    <div class="form">
+        <div style="margin-top: 18px;">
+            <form class="login" method="post">
+                <input type="text" name="username" placeholder="username"/>
+                <input type="email" name="email" placeholder="email"/>
+                <input type="password" name="password" placeholder="password"/>
+                <button type="submit">Create</button>
+            </form>
+        </div>
     </div>
 </div>
-<div class="signup-form">
-    <form id="form">
-        <!--<div class="social-btn text-center">-->
-            <!--<a href="#" class="btn btn-default btn-md facebook-btn"><i class="fa fa-facebook"></i> Facebook</a>-->
-            <!--<a href="#" class="btn btn-default btn-md twitter-btn"><i class="fa fa-twitter"></i> Twitter</a>-->
-            <!--<a href="#" class="btn btn-default btn-md google-btn"><i class="fa fa-google"></i> Google</a>-->
-        <!--</div>-->
-        <!--<div class="or-seperator"><b>or</b></div>-->
-        <div class="form-group ">
-            <input type="text" class="form-control input-lg " name="username" id="username" placeholder="Username"
-                   required="required" pattern='[A-Za-zА-Яа-яЁё]{3,}'
-                   title="Only Latin and Cyrillic alphabet are allowed. The minimum length is 3 characters."
-                   value="admin">
-        </div>
-        <div class="form-group ">
-            <input type="email" class="form-control input-lg" name="email" id="email" placeholder="Email Address"
-                   required="required" title="Input valid email address"
-                   value="admin@admin.com">
-        </div>
-        <div class="form-group">
-            <input type="password" class="form-control input-lg" name="password" id="password" placeholder="Password"
-                   required="required" minlength='8' title="Minimum length is 8 characters."
-                   onchange="validatePassword()">
-        </div>
-        <div class="form-group">
-            <input type="password" class="form-control input-lg" name="confirm_password" id="confirm_password"
-                   placeholder="Confirm Password" required="required" onchange="validatePassword()">
-        </div>
-        <div class="form-group">
-            <button class="btn btn-default btn-md btn-block signup-btn" id="signup_button">Sign Up
-            </button>
-        </div>
-    </form>
-</div>
+
+
+<script>
+    $('form').on('submit', e => {
+        e.preventDefault();
+        localStorage.token = '';
+        let value = $(e.target).attr('class');
+        let selector = '.' + value;
+        $.ajax({
+            url: '/' + value,
+            type: 'POST',
+            data: {
+                username: $(selector + ' [name=username]').val(),
+                email: $(selector + ' [name=email]').val(),
+                password: $(selector + ' [name=password]').val()
+            },
+            beforeSend: () => {
+                $(selector + ' button').prop('disabled', true);
+            },
+            success: (res) => {
+                localStorage.token = res.token;
+                // работает, перенаправляем на следю страницу
+                window.location.replace(window.location.href + "chat");
+                alert(JSON.stringify(res));
+            },
+            error: (res) => {
+                localStorage.token = '';
+                alert(JSON.stringify(res));
+            },
+            complete: () => {
+                $(selector + ' button').prop('disabled', false);
+            }
+        });
+        return false;
+    });
+</script>
+
 </body>
 </html>
