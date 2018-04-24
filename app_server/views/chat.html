@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
 <head>
-
     <meta charset="UTF-8">
     <title>Chatick App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,119 +16,137 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
 
 
-    <style>
-        ul {
-            list-style: none;
-            word-break: break-all;
-        }
+</head>
+<style>
 
-        .jumbotron {
-            margin-bottom: 0;
-        }
 
-        /*MESSAGES AREA*/
+    ul {
+        list-style: none;
+        word-break: break-all;
+    }
+
+    .jumbotron {
+        margin-bottom: 0;
+    }
+
+    /*MESSAGES AREA*/
+    .messagesDivHeight {
+        height: 360px;
+    }
+
+    .message-container {
+        border: 1px solid #dedede;
+        background-color: #f1f1f1;
+        border-radius: 5px;
+        padding: 5px;
+        margin: 5px 0;
+    }
+
+    .message-container::after {
+        content: "";
+        clear: both;
+        display: table;
+    }
+
+    .message-avatar {
+        min-width: 40px;
+        width: 100px;
+    }
+
+    .message-time {
+        color: #aaa;
+    }
+
+    /*INPUT AREA*/
+    .input_message {
+        width: 100%;
+        font-size: 100%;
+        height: 40px;
+    }
+
+    /*USERS AREA*/
+    .usersDivArea {
+        max-height: 230px;
+    }
+
+    .usersUl {
+        overflow-x: scroll;
+    }
+
+    .usersAvatarIcon {
+        font-size: 60px;
+        color: white;
+    }
+
+    .userLiItem {
+        background: #f6f3ee;
+        width: 140px;
+        margin-top: 2px;
+        border: 2px #f6f3ee solid;
+        border-radius: 5px;
+    }
+
+    .btn-group {
+        margin-left: 2px;
+        height: 26px;
+        width: 100%;
+    }
+
+    .btn-admin-btn {
+        width: 25%;
+    }
+
+    .managingIcon {
+        font-size: 18px;
+        color: white;
+    }
+
+    /*INFO AREA*/
+
+    table {
+        padding: 0;
+        margin: 0;
+        height: 15px;
+    }
+
+    .infoDiv {
+        max-height: 120px;
+        overflow-y: auto;
+        margin-bottom: 5px;
+    }
+
+    .infoTable {
+        height: 100%;
+        font-size: 12px;
+    }
+
+    .infoTable tr:nth-child(even) {
+        background: #f7e4d4;
+    }
+
+    .infoTable tr:nth-child(odd) {
+        background: #faf0e6;
+    }
+
+    @media all and (min-width: 768px) {
         .messagesDivHeight {
-            max-height: 360px;
+            max-height: 480px;
             overflow-y: scroll;
         }
 
-        .message-container {
-            border: 1px solid #dedede;
-            background-color: #f1f1f1;
-            border-radius: 5px;
-            padding: 5px;
-            margin: 5px 0;
+        .usersDivArea {
+            margin-top: 20px;
         }
 
-        .message-container::after {
-            content: "";
-            clear: both;
-            display: table;
-        }
-
-        .message-container img {
-            float: left;
-            max-width: 60px;
-            width: 100%;
-            margin-right: 10px;
-            border-radius: 50%;
-        }
-
-        .message-time-right {
-            float: right;
-            color: #aaa;
-        }
-
-        /*INPUT AREA*/
-        .input_message {
-            width: 100%;
-            font-size: 100%;
-            height: 40px;
-        }
-
-        /*USERS AREA*/
-        .usersDiv {
-            max-height: 230px;
-        }
-
-        .usersUl {
-            overflow-x: scroll;
-        }
-
-        .usersAvatarIcon {
-            font-size: 100px;
-            color: white;
-        }
-
-        .userLiItem {
-            background: #f6f3ee;
-            width: 140px;
-            margin-top: 2px;
-            border: 2px #f6f3ee solid;
-            border-radius: 5px;
-        }
-
-        .btn-group {
-            margin-left: 2px;
-            width: 100%;
-        }
-
-        .btn-admin-btn {
-            width: 25%;
-        }
-
-        /*INFO AREA*/
         .infoDiv {
-            max-height: 150px;
-            overflow-y: auto;
-            margin-bottom: 5px;
-            border-radius: 10px;
+            margin-top: 20px;
         }
 
-        .infoTable {
-            height: 100%
+        .jumbotron {
+            margin-bottom: 20px;
         }
-
-        @media all and (min-width: 768px) {
-            .messagesDivHeight {
-                max-height: 480px;
-                overflow-y: scroll;
-            }
-
-            .usersDiv {
-                margin-top: 20px;
-            }
-
-            .infoDiv {
-                margin-top: 20px;
-            }
-
-            .jumbotron {
-                margin-bottom: 20px;
-            }
-        }
-    </style>
-</head>
+    }
+</style>
 <body>
 
 <div class="jumbotron jumbotron-fluid ">
@@ -141,47 +158,24 @@
 
 <div class="container">
     <!-- Область вывода сообщений -->
-    <div class="container_fluid bg-light col-sm-12 messagesDivHeight">
+    <div id="messagesDiv" class="container_fluid bg-light col-sm-12 messagesDivHeight">
         <ul id="messages">
-            <li class="message-container">
-                <img src="https://www.w3schools.com/w3images/bandmember.jpg" alt="Avatar">
-                <p>Hello. How are you today?</p>
-                <span class="message-time-right">11:00</span>
-            </li>
-            <!--<li class="message-container">-->
-                <!--<img src="https://www.w3schools.com/w3images/avatar_g2.jpg" alt="Avatar">-->
-                <!--<p>Hello. Fine. And you?</p>-->
-                <!--<span class="message-time-right">11:00</span>-->
-            <!--</li>-->
-            <!--<li class="message-container">-->
-                <!--<img src="https://www.w3schools.com/w3images/bandmember.jpg" alt="Avatar">-->
-                <!--<p>Hello. How are you today?</p>-->
-                <!--<span class="message-time-right">11:00</span>-->
-            <!--</li>-->
-            <!--<li class="message-container">-->
-                <!--<img src="https://www.w3schools.com/w3images/avatar_g2.jpg" alt="Avatar">-->
-                <!--<p>Hello. Fine. And you?</p>-->
-                <!--<span class="message-time-right">11:00</span>-->
-            <!--</li>-->
-            <!--<li class="message-container">-->
-                <!--<img src="https://www.w3schools.com/w3images/bandmember.jpg" alt="Avatar">-->
-                <!--<p>Hello. How are you today?</p>-->
-                <!--<span class="message-time-right">11:00</span>-->
-            <!--</li>-->
-            <!--<li class="message-container">-->
-                <!--<img src="https://www.w3schools.com/w3images/avatar_g2.jpg" alt="Avatar">-->
-                <!--<p>Hello. Fine. And you?</p>-->
-                <!--<span class="message-time-right">11:00</span>-->
-            <!--</li>-->
-            <!--<li class="message-container">-->
-                <!--<img src="https://www.w3schools.com/w3images/avatar_g2.jpg" alt="Avatar">-->
-                <!--<p>Hello. Fine. And you?</p>-->
-                <!--<span class="message-time-right">11:00</span>-->
-            <!--</li>-->
-            <!--<li class="message-container">-->
-                <!--<img src="https://www.w3schools.com/w3images/avatar_g2.jpg" alt="Avatar">-->
-                <!--<p>Hello. Fine. And you?</p>-->
-                <!--<span class="message-time-right">11:00</span>-->
+            <!--DO NOT DELETE, HTML EXAMPLE-->
+            <!--<li class="d-flex message-container">-->
+            <!--<div class="d-flex flex-column align-items-center message-avatar">-->
+            <!--<i class="fa fa-user usersAvatarIcon"></i>-->
+            <!--<div>Username</div>-->
+            <!--</div>-->
+            <!--<div class="container-fluid d-flex flex-column">-->
+            <!--<div>Hello. How are you today?-->
+            <!--Hello. How are you today? Hello. How are you today? Hello. How are you today? Hello. How are you-->
+            <!--today? Hello. How are you today? Hello. How are you today? Hello. How are you today?-->
+            <!--Hello. How are you today? Hello. How are you today? Hello. How are you today? Hello. How are you-->
+            <!--today? Hello. How are you today? Hello. How are you today?-->
+            <!--Hello. How are you today? Hello. How are you today?-->
+            <!--</div>-->
+            <!--<div class="mt-auto p-2 align-self-end message-time"></div>-->
+            <!--</div>-->
             <!--</li>-->
         </ul>
     </div>
@@ -190,31 +184,37 @@
         <input type="text" class="form-control input_message" id="inputMessage" placeholder="Type here..."/>
     </div>
     <!-- Пользователи -->
-    <div class="container_fluid usersDiv">
+    <div class="container_fluid usersDivArea">
         <ul class="nav nav-tabs">
             <li class="nav-item active"><a class="nav-link active" data-toggle="tab" href="#onlineUsersDiv">Online</a>
             </li>
             <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#allUsersDiv">All</a></li>
         </ul>
-        <div class="tab-content">
+        <div class="tab-content usersDiv">
 
             <div id="onlineUsersDiv" class="tab-pane active">
                 <ul id="onlineUsersUl" class="list-inline d-flex justify-content-start usersUl">
 
-                    <li class="list-inline-item text-center userLiItem">
-                        <div class="d-none d-md-block d-xl-block"><i class="fa fa-user usersAvatarIcon"></i></div>
-                        <h6><i class="fa fa-circle text-success"></i>Username</h6>
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-danger btn-sm btn-admin-btn"><i
-                                    class="fa fa-remove"></i></button>
-                            <button type="button" class="btn btn-warning btn-sm btn-admin-btn"><i
-                                    class="fa fa-volume-off"></i></button>
-                            <button type="button" class="btn btn-info btn-sm btn-admin-btn"><i
-                                    class="fa fa-volume-up"></i></button>
-                            <button type="button" class="btn btn-success btn-sm btn-admin-btn"><i
-                                    class="fa fa-user-plus"></i></button>
-                        </div>
-                    </li>
+                    <!--DO NOT DELETE, HTML EXAMPLE-->
+                    <!--<li class="list-inline-item text-center userLiItem">-->
+                    <!--<div class="d-none d-md-block d-xl-block">-->
+                    <!--<i class="fa fa-user usersAvatarIcon"></i>-->
+                    <!--</div>-->
+                    <!--<div>-->
+                    <!--<i class="fa fa-circle text-success"></i>-->
+                    <!--Username-->
+                    <!--</div>-->
+                    <!--<div class="btn-group">-->
+                    <!--<button type="button" class="btn btn-danger btn-sm btn-admin-btn"><i-->
+                    <!--class="fa fa-remove managingIcon"></i></button>-->
+                    <!--<button type="button" class="btn btn-warning btn-sm btn-admin-btn"><i-->
+                    <!--class="fa fa-volume-off managingIcon"></i></button>-->
+                    <!--<button type="button" class="btn btn-info btn-sm btn-admin-btn"><i-->
+                    <!--class="fa fa-volume-up managingIcon"></i></button>-->
+                    <!--<button type="button" class="btn btn-success btn-sm btn-admin-btn"><i-->
+                    <!--class="fa fa-user-plus managingIcon"></i></button>-->
+                    <!--</div>-->
+                    <!--</li>-->
 
                 </ul>
             </div>
@@ -222,20 +222,22 @@
             <div id="allUsersDiv" class="tab-pane">
                 <ul id="allUsersUl" class="list-inline d-flex justify-content-start usersUl">
 
-                    <li class="list-inline-item text-center userLiItem">
-                        <div class="d-none d-md-block d-xl-block"><i class="fa fa-user usersAvatarIcon"></i></div>
-                        <h6>Username</h6>
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-danger btn-sm btn-admin-btn"><i
-                                    class="fa fa-remove"></i></button>
-                            <button type="button" class="btn btn-warning btn-sm btn-admin-btn"><i
-                                    class="fa fa-volume-off"></i></button>
-                            <button type="button" class="btn btn-info btn-sm btn-admin-btn"><i
-                                    class="fa fa-volume-up"></i></button>
-                            <button type="button" class="btn btn-success btn-sm btn-admin-btn"><i
-                                    class="fa fa-user-plus"></i></button>
-                        </div>
-                    </li>
+
+                    <!--DO NOT DELETE, HTML EXAMPLE-->
+                    <!--<li class="list-inline-item text-center userLiItem">-->
+                    <!--<div class="d-none d-md-block d-xl-block"><i class="fa fa-user usersAvatarIcon"></i></div>-->
+                    <!--<h6>Username</h6>-->
+                    <!--<div class="btn-group">-->
+                    <!--<button type="button" class="btn btn-danger btn-sm btn-admin-btn"><i-->
+                    <!--class="fa fa-remove"></i></button>-->
+                    <!--<button type="button" class="btn btn-warning btn-sm btn-admin-btn"><i-->
+                    <!--class="fa fa-volume-off"></i></button>-->
+                    <!--<button type="button" class="btn btn-info btn-sm btn-admin-btn"><i-->
+                    <!--class="fa fa-volume-up"></i></button>-->
+                    <!--<button type="button" class="btn btn-success btn-sm btn-admin-btn"><i-->
+                    <!--class="fa fa-user-plus"></i></button>-->
+                    <!--</div>-->
+                    <!--</li>-->
 
                 </ul>
             </div>
@@ -245,9 +247,21 @@
         <!-- Info-сообщения-->
 
 
+        <div id="infoArea" class="tab-pane active">
+            <table id="infoTable" class="table infoTable">
 
-        <div id="infoTables" class="tab-pane active">
-            <table class="table table-striped table-warning infoTable" id="infos">
+                <tr style="height: 20px">
+                    <td>Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info
+                        message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message
+                        bla-bla!
+                    </td>
+                </tr>
+                <tr>
+                    <td>Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info
+                        message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message
+                        bla-bla!
+                    </td>
+                </tr>
                 <tr>
                     <td>Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info
                         message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message
@@ -260,18 +274,6 @@
                         bla-bla!
                     </td>
                 </tr>
-                <!--<tr>-->
-                    <!--<td>Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info-->
-                        <!--message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message-->
-                        <!--bla-bla!-->
-                    <!--</td>-->
-                <!--</tr>-->
-                <!--<tr>-->
-                    <!--<td>Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info-->
-                        <!--message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message-->
-                        <!--bla-bla!-->
-                    <!--</td>-->
-                <!--</tr>-->
             </table>
         </div>
     </div>

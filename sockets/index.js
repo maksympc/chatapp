@@ -26,9 +26,10 @@ function updateLastMessageTimeByEmail(email) {
 function checkLastMessageTimeByEmail(email) {
     if (usersTimer.get(email)) {
         let difference = Date.now() - usersTimer.get(email);
-        // difference should be greater than 15 seconds
-        if (difference < 15 * 1000)
-            return {status: false, wait: ((15 * 1000 - difference) / 1000).toFixed(2)};
+        //TODO:difference should be greater than 15 seconds, for test set 3 seconds
+        let SECONDS_BARRIER = 3;
+        if (difference < SECONDS_BARRIER * 1000)
+            return {status: false, wait: ((SECONDS_BARRIER * 1000 - difference) / 1000).toFixed(2)};
         else
             return {status: true};
     }
@@ -83,11 +84,14 @@ index.init = function (server) {
                     // отправляем юзеру историю переписки
                     messagesService.getAllMessages().then(response => {
                         if (response.status) {
-                            socket.emit('login', {
+                            let sockResponse = {
+                                user: socket.user,
                                 numUsers: usersOnlineStorage.size,
                                 messages: response.messages,
                                 onlineUsers: getOnlineUsers(usersOnlineStorage)
-                            });
+                            };
+                            logger.debug("login event: " + JSON.stringify(sockResponse));
+                            socket.emit('login', sockResponse);
 
                         }
                     });

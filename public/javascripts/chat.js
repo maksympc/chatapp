@@ -4,6 +4,20 @@ function parseJwt(token) {
     return JSON.parse(window.atob(base64));
 }
 
+function dateToString(date) {
+    let n = new Date(date);
+    let y = n.getFullYear();
+    let m = n.getMonth() + 1;
+    let d = n.getDate();
+    let hr = n.getHours();
+    let hh = hr < 10 ? '0' + hr : hr;
+    let min = n.getMinutes();
+    let mm = min < 10 ? '0' + min : min;
+    let sec = n.getSeconds();
+    let ss = sec < 10 ? '0' + sec : sec;
+    return d + "/" + m + "/" + y + " " + hh + ":" + mm + ":" + ss;
+}
+
 $(document).ready(function () {
     var FADE_TIME = 100; // ms
     var TYPING_TIMER_LENGTH = 500; // ms
@@ -18,6 +32,8 @@ $(document).ready(function () {
     var $messages = $('#messages');
     // input message box
     var $inputMessage = $('#inputMessage');
+    var $onlineUsersUl = $('#onlineUsersUl');
+    var $allUsersUl = $('#allUsersUl');
 
     // object, that contains all token's {email, role, username, exp, iat} fields
     var user = parseJwt(localStorage.token);
@@ -31,13 +47,12 @@ $(document).ready(function () {
 
     // incoming value
     // TODO: переписать с использованием более сложного объекта сообщения
-    function addParticipantsMessage(data) {
+    function addParticipantsMessage(numUsers) {
         var message = '';
-        if (data.numUsers === 1) {
+        if (numUsers === 1)
             message += "there's 1 participant";
-        } else {
-            message += "there are " + data.numUsers + " participants";
-        }
+        else
+            message += "there are " + numUsers + " participants";
         log(message);
     }
 
@@ -67,19 +82,42 @@ $(document).ready(function () {
     // создание сообщение-чата в списке сообщений
     // TODO: пересмотреть используемые методы
     function addChatMessage(data, options) {
+        // проверяем, есть ли элемент, который отвечает за то,
+        // печатает ли этот пользователь в этот момент
         var $typingMessages = getTypingMessages(data);
         options = options || {};
 
+        // удаляем из списка сообщений
         if ($typingMessages.length !== 0) {
             options.fade = false;
             $typingMessages.remove();
         }
-        // создание элемента пользователя
-        var $usernameDiv = $('<span class="username"/>').text(data.username).css('color', getUsernameColor(data.username));
-        var $messageBodyDiv = $('<span class="messageBody">').text(data.message);
+        // создаем элемент списка сообщений
+        let $messageDiv = $('<li class="d-flex"/>');
+        // TODO: можно разбить на 2 функции
+        if (data.createdOn) {
 
-        var typingClass = data.typing ? 'typing' : '';
-        var $messageDiv = $('<li class="message"/>').data('username', data.username).addClass(typingClass).append($usernameDiv, $messageBodyDiv);
+            // 1. аватар и имя
+            let $avatarArea = $('<div class="d-flex flex-column align-items-center message-avatar"/>');
+            let $avatar = $('<i class="fa fa-user usersAvatarIcon"/>').css('color', getUsernameColor(data.username));
+            let $username = $('<div/>').text(data.username).css('color', getUsernameColor(data.username));
+            $avatarArea.append($avatar, $username);
+            // 2. тело сообщения и время
+            let $messageArea = $('<div class="container-fluid d-flex flex-column"/>');
+            let $message = $('<div>').text(data.message);
+            let $time = $('<div class="mt-auto p-2 align-self-end message-time">').text(dateToString(data.createdOn));
+            $messageArea.append($message, $time);
+            // 3. заполняем элемент списка
+            $messageDiv.addClass('message-container').append($avatarArea, $messageArea);
+        } else {
+            let typingClass = data.typing ? 'typing' : '';
+            // 1. Имя
+            let $username = $('<div/>').text(data.username).css('color', getUsernameColor(data.username));
+            // 1. is typing...
+            let $message = $('<div>').text(data.message).css('padding-left', '5px');
+            // 3. заполняем элемент списка
+            $messageDiv.data('username', data.username).addClass('message').addClass(typingClass).append($username, $message);
+        }
 
         addMessageElement($messageDiv, options);
     }
@@ -124,8 +162,127 @@ $(document).ready(function () {
         } else {
             $messages.append($el);
         }
-        $messages[0].scrollTop = $messages[0].scrollHeight;
+        // прокрутка вниз
+        $('#messagesDiv').animate({
+            scrollTop: $messages[0].scrollHeight
+        }, 'fast');
     }
+
+
+    //render new users[] in #onlineUsersUl
+    function updateOnlineUsersList(data) {
+        // проходимся по каждому элементу в массиве
+        $onlineUsersUl.empty();
+        data.forEach((user, index, onlineUsers) => {
+            console.log("user:" + user);
+            // rootItem
+            let $rootLi = $('<li class="list-inline-item text-center userLiItem"/>');
+            //icon
+            let $avatarArea = $('<div class="d-none d-md-block d-xl-block">');
+            let $avatar = $('<i class="fa fa-user usersAvatarIcon"></i>').css('color', getUsernameColor(user.username));
+            $avatarArea.append($avatar);
+            //username
+            let $onlineSuccess = $('<i class="fa fa-circle text-success"></i>');
+            let $username = $('<div/>').append($onlineSuccess);
+            $username.text(user.username).css('color', getUsernameColor(user.username));
+            // buttons for admin
+            let $buttonGroup = $('<div class="btn-group"/>');
+            //ban
+            let $buttonBan = $('<button type="button" class="btn btn-danger btn-sm btn-admin-btn"/>')
+                .data('email', user.email)
+                .append('<i class="fa fa-remove managingIcon"/>');
+            //mute
+            let $buttonMute = $('<button type="button" class="btn btn-warning btn-sm btn-admin-btn"/>')
+                .data('email', user.email)
+                .append('<i class="fa fa-volume-off managingIcon"/>');
+            //unmute
+            let $buttonUnmute = $('<button type="button" class="btn btn-info btn-sm btn-admin-btn"/>')
+                .data('email', user.email)
+                .append('<i class="fa fa-volume-up managingIcon"/>');
+            //unban
+            let $buttonUnban = $('<button type="button" class="btn btn-success btn-sm btn-admin-btn"/>')
+                .data('email', user.email)
+                .append('<i class="fa fa-user-plus managingIcon"/>');
+            $buttonGroup.append($buttonBan, $buttonMute, $buttonUnmute, $buttonUnban);
+            // construct root <li> element
+            $rootLi.append($avatarArea, $username, $buttonGroup);
+            // render root li element
+            addOnlineUserElement($rootLi);
+        });
+    }
+
+    function addOnlineUserElement(el) {
+
+        $onlineUsersUl.append(el);
+        $('#onlineUsersDiv').animate({
+            scrollLeft: $onlineUsersUl[0].scrollWidth
+        }, 'fast');
+    }
+
+    //render all users[] in #allUsersUl, should use for admin only!
+    function updateAllUsersList(data) {
+        // проходимся по каждому элементу в массиве
+        $allUsersUl.empty();
+        console.log(data);
+        data.forEach((user, index, onlineUsers) => {
+            console.log("user:" + user);
+            // rootItem
+            let $rootLi = $('<li class="list-inline-item text-center userLiItem"/>');
+            //icon
+            let $avatarArea = $('<div class="d-none d-md-block d-xl-block">');
+            let $avatar = $('<i class="fa fa-user usersAvatarIcon"></i>').css('color', getUsernameColor(user.username));
+            $avatarArea.append($avatar);
+            //username
+            let $username = $('<div/>').text(user.username).css('color', getUsernameColor(user.username));
+            // buttons for admin
+            let $buttonGroup = $('<div class="btn-group"/>');
+            //ban
+            let $buttonBan = $('<button type="button" class="btn btn-danger btn-sm btn-admin-btn"/>')
+                .data('email', user.email)
+                .click(function () {
+                    socket.emit('ban user', $(this).data('email'));
+                })
+                .append('<i class="fa fa-remove managingIcon"/>');
+            //mute
+            let $buttonMute = $('<button type="button" class="btn btn-warning btn-sm btn-admin-btn"/>')
+                .data('email', user.email)
+                .click(function () {
+                    socket.emit('mute user', $(this).data('email'));
+                })
+                .append('<i class="fa fa-volume-off managingIcon"/>');
+            //unmute
+            let $buttonUnmute = $('<button type="button" class="btn btn-info btn-sm btn-admin-btn"/>')
+                .data('email', user.email)
+                .click(function () {
+                    socket.emit('unmute user', $(this).data('email'));
+                })
+                .append('<i class="fa fa-volume-up managingIcon"/>');
+            //unban
+            let $buttonUnban = $('<button type="button" class="btn btn-success btn-sm btn-admin-btn"/>')
+                .data('email', user.email)
+                .click(function () {
+                    socket.emit('unban user', $(this).data('email'));
+                })
+                .append('<i class="fa fa-user-plus managingIcon"/>');
+            $buttonGroup.append($buttonBan, $buttonMute, $buttonUnmute, $buttonUnban);
+            // construct root <li> element
+            $rootLi.append($avatarArea, $username, $buttonGroup);
+            // render root li element
+            addAllUserElement($rootLi);
+        });
+    }
+
+    function addAllUserElement(el) {
+        $allUsersUl.append(el);
+        $('#allUsersDiv').animate({
+            scrollLeft: $onlineUsersUl[0].scrollWidth
+        }, 'fast');
+    }
+
+
+
+
+
 
     // Updates the typing event
     function updateTyping() {
@@ -144,8 +301,8 @@ $(document).ready(function () {
         }, TYPING_TIMER_LENGTH);
     }
 
-    // TODO: пересмотреть функцию
     // Gets the 'X is typing' messages of a user
+    // перебирает все элементы с такими классами, ищет где совпадает имя и возвращает элемент
     function getTypingMessages(data) {
         return $('.typing.message').filter(function (i) {
             return $(this).data('username') === data.username;
@@ -163,7 +320,6 @@ $(document).ready(function () {
         var index = Math.abs(hash % COLORS.length);
         return COLORS[index];
     }
-
 
     // Keyboard events
 
@@ -206,24 +362,27 @@ $(document).ready(function () {
                 // Whenever the server emits 'login', log the login message
                 // {numUsers, messages[], onlineUsers[]}
                 socket.on('login', function (data) {
-
+                    user = data.user;
                     // should parse data object
-                    // updateOnlineUsers(data.onlineUsers);
+                    updateOnlineUsersList(data.onlineUsers);
                     // updateMessages(data.messages);
-
                     // Display the welcome message
+                    console.log("Welcome, " + JSON.stringify(user));
+                    log("Welcome, " + user.username);
                     addParticipantsMessage(data.numUsers);
                 });
 
                 // Whenever the server emits 'new message', update the chat body
                 socket.on('new message', function (data) {
+                    console.log('new message:' + JSON.stringify(data));
                     addChatMessage(data);
                 });
 
                 // Whenever the server emits 'user joined', log it in the chat body
                 socket.on('user joined', function (data) {
+                    console.log('user joined:' + JSON.stringify(data));
                     // update online users
-                    // updateOnlineUsers(data.users);
+                    updateOnlineUsersList(data.onlineUsers);
                     log(data.username + ' joined');
                     addParticipantsMessage(data.numUsers);
                 });
@@ -231,27 +390,42 @@ $(document).ready(function () {
                 // Whenever the server emits 'user left', log it in the chat body
                 socket.on('user left', function (data) {
                     log(data.username + ' left');
-                    // updateOnlineUsers(data.onlineUsers)
-                    addParticipantsMessage(data);
+                    updateOnlineUsersList(data.onlineUsers);
+                    addParticipantsMessage(data.numUsers);
                     removeChatTyping(data);
                 });
 
                 // Whenever the server emits 'typing', show the typing message
                 socket.on('typing', function (data) {
+                    console.log('typing:' + JSON.stringify(data));
                     addChatTyping(data);
                 });
 
                 // Whenever the server emits 'stop typing', kill the typing message
                 socket.on('stop typing', function (data) {
+                    console.log('stop typing:' + JSON.stringify(data));
                     removeChatTyping(data);
                 });
 
+                socket.on('get all users', function (data) {
+                    updateAllUsersList(data);
+                });
 
+
+                //TODO:доделать
+                socket.on('banned', function (data) {
+                    alert('user was banned:' + data);
+                });
+
+                socket.on('info', function (data) {
+                    alert('info:' + data);
+                });
             })
             .on('disconnect', function () {
                 localStorage.token = null;
                 alert('you have been disconnected');
-                window.location.replace(window.location.href.slice(0, -3));
+                // обрезаем ссылку до имени хоста
+                window.location.replace(window.location.href.slice(0, -4));
             })
             .on('reconnect', function () {
                 alert('you have been reconnected');

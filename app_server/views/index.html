@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <title>Sign up page</title>
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
-
-
 </head>
 <body>
 
 <div class="login-page">
     <div class="form">
         <div style="margin-top: 18px;">
-            <form class="login" method="post">
+            <form class="login" method="post" accept-charset="ISO-8859-15">
                 <input type="text" name="username" placeholder="username"/>
                 <input type="email" name="email" placeholder="email"/>
                 <input type="password" name="password" placeholder="password"/>
@@ -24,9 +22,9 @@
 
 
 <script>
+    localStorage.token = null;
     $('form').on('submit', e => {
         e.preventDefault();
-        localStorage.token = '';
         let value = $(e.target).attr('class');
         let selector = '.' + value;
         $.ajax({

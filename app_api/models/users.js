@@ -34,7 +34,7 @@ usersSchema.methods.generateJwt = function (password) {
             email: this.email,
             role: this.role,
             username: this.username,
-            exp: parseInt((expiry.getTime() / 1000) + 300)// 5 минуты на токен
+            exp: parseInt((expiry.getTime() / 1000) + 3600)// 1 час на токен
         },
         process.env.JWT_SECRET
     );
