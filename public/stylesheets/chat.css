@@ -1,0 +1,185 @@
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+ul {
+    list-style: none;
+    word-break: break-all;
+}
+
+ul#messages {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.header {
+    background: #e9ecef;
+    height: 160px;
+    color: #999;
+}
+
+.logo {
+    height: 100%;
+    padding-bottom: 11px;
+}
+
+.profileGroup {
+    padding-right: 20px;
+    padding-bottom: 5px;
+}
+
+.profileGroup button {
+    margin-right: 5px;
+}
+
+/*MESSAGES AREA*/
+.messagesDivHeight {
+    height: 360px;
+    overflow-y: auto;
+}
+
+.message-container {
+    border: 1px solid #dedede;
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px 0;
+}
+
+.message-container:hover {
+    background: #fafafa;
+}
+
+.message-container::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.message-avatar {
+    min-width: 40px;
+}
+
+.message-time {
+    color: #aaa;
+    font-size: smaller;
+}
+
+/*INPUT AREA*/
+.input_message {
+    width: 100%;
+    font-size: 100%;
+    height: 40px;
+
+    -webkit-box-shadow: none !important;
+    -moz-box-shadow: none !important;
+    box-shadow: none !important;
+}
+
+.input_message:focus {
+    border: 2px #a8a8a8 solid;
+}
+
+/*USERS AREA*/
+.usersDivArea {
+    max-height: 230px;
+}
+
+.usersUl {
+    overflow-x: auto;
+}
+
+.usersAvatarIcon {
+    font-size: 20px;
+    color: white;
+}
+
+.userLiItem {
+    background: #f1f1f1;
+    width: 140px;
+    margin-top: 2px;
+    border: 2px #f6f3ee solid;
+    border-radius: 5px;
+}
+
+.userLiItem:hover {
+    background: #fafafa;
+}
+
+.btn-group {
+    margin-left: 2px;
+    height: 26px;
+    width: 100%;
+}
+
+.btn-admin-btn {
+    width: 25%;
+}
+
+.managingIcon {
+    font-size: 18px;
+    color: white;
+}
+
+/*INFO AREA*/
+
+.infoDiv {
+    height: 120px;
+}
+
+.infoDivTab {
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.infoUl {
+    list-style: none;
+    height: 100%;
+    font-size: 12px;
+}
+
+.infoUl li {
+    min-height: 25px;
+}
+
+.infoUl li:nth-child(even) {
+    background: #f1f1f1;
+}
+
+.infoUl li:nth-child(odd) {
+    background: #f8f9fa;
+}
+
+@media all and (min-width: 768px) {
+    .messagesDivHeight {
+        height: 640px;
+        overflow-y: auto;
+    }
+
+    .usersDivArea {
+        margin-top: 20px;
+    }
+
+    .usersAvatarIcon {
+        font-size: 60px;
+        color: white;
+    }
+
+    .infoDiv {
+        margin-top: 20px;
+    }
+
+    .message-time {
+        font-size: medium;
+    }
+
+    .message-avatar {
+        min-width: 40px;
+        width: 100px;
+    }
+
+    .header {
+        margin-bottom: 20px;
+        height: 225px;
+    }
+}

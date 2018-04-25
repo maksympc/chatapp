@@ -1,5 +1,5 @@
 function parseJwt(token) {
-    if (!(token === undefined || token === null)) {
+    if ((typeof token !== 'undefined') && (typeof token !== 'null')) {
         var base64Url = token.split('.')[1];
         var base64 = base64Url.replace('-', '+').replace('_', '/');
         return JSON.parse(window.atob(base64));
@@ -87,10 +87,29 @@ $(document).ready(function () {
     var lastTypingTime;
     // фокусируемся на поле, при вводе сообщения
     var $currentInput = $inputMessage.focus();
-    var $logout = $('#logoutId');
-
+    var $logoutBtn = $('#logoutId');
+    var $profileBtn = $('#profileId');
     // dependency will placed in chat.html file
     var socket = io();
+
+    // function createAdminModal(userItem){
+    //     // let $root = $('<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">');
+    //
+    // }
+    //
+    // function bindProfileButton() {
+    //     if (user) {
+    //     }
+    // }
+
+
+    // $profileBtn.text(user.username);
+
+    (function () {
+        if (user.role != 'admin') {
+            $('#allUsersId').remove();
+        }
+    }());
 
     // incoming value
     // TODO: переписать с использованием более сложного объекта сообщения
@@ -188,12 +207,8 @@ $(document).ready(function () {
 
     function updateMessages(data) {
         $messages.empty();
-        var options = {animationTime: 30};
-        console.log("update Messages:");
-        console.log("typeof:" + (typeof data.messages));
-        console.log("messages:" + JSON.stringify(data.messages));
+        var options = {animationTime: 20};
         data.messages.forEach((message) => {
-            console.log('forEach message:' + JSON.stringify(message));
             addChatMessage(message, options);
         });
     }
@@ -239,7 +254,6 @@ $(document).ready(function () {
         // проходимся по каждому элементу в массиве
         $onlineUsersUl.empty();
         data.forEach((user, index, onlineUsers) => {
-            console.log("user:" + user);
             // rootItem
             let $rootLi = $('<li class="list-inline-item text-center userLiItem"/>');
             //icon
@@ -433,7 +447,7 @@ $(document).ready(function () {
         $inputMessage.focus();
     });
 
-    $logout.click(function () {
+    $logoutBtn.click(function () {
         localStorage.token = null;
         console.log('button was pressed!');
         if (socket) {

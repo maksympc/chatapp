@@ -5,121 +5,8 @@
     <title>Sign up page</title>
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/stylesheets/index.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
-
-    <style>
-        body {
-            background: lightgray;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .header {
-            background: #e9ecef;
-            height: 160px;
-            color: #999;
-        }
-
-        .logo {
-            height: 100%;
-            padding-bottom: 1px;
-        }
-
-        .profileGroup {
-            padding-right: 20px;
-            padding-bottom: 5px;
-        }
-
-        .profileGroup button {
-            margin-right: 5px;
-        }
-
-        /*.header {*/
-        /*color: #999;*/
-        /*}*/
-
-        .form-control {
-            margin-top: 10px;
-            font-size: 16px;
-            box-shadow: none;
-            border: 0;
-            border-bottom: 1px dashed #e0e0e0;
-            border-radius: 0;
-        }
-
-        .form-control:focus {
-            border-bottom: 2px solid #e0e0e0;
-            box-shadow: none;
-        }
-
-        .btn {
-            border-radius: 5px;
-            outline: none !important;
-        }
-
-        .form {
-            width: 480px;
-            margin: 0 auto;
-            padding: 30px 0;
-        }
-
-        .form form {
-            margin-bottom: 20px;
-            background: #fff;
-            padding: 40px;
-        }
-
-        .form a {
-            color: #000;
-        }
-
-        .form a:hover {
-            color: #fff;
-        }
-
-        .form h2 {
-            text-align: center;
-            font-size: 34px;
-            margin: 10px 0 15px;
-        }
-
-        .form .hint-text {
-            color: #999;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .form .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form .btn {
-            font-size: 18px;
-            line-height: 26px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .signup-btn {
-            width: 100%;
-            margin-top: 10px;
-            background: #3ca84b;
-            color: #fff;
-            text-align: center;
-            transition: all 0.4s;
-        }
-
-        .signup-btn:hover {
-            background: #69c976;
-            color: #fff;
-        }
-
-        @media all and (min-width: 768px) {
-            .header {
-                margin-bottom: 20px;
-                height: 225px;
-            }
-        }
-    </style>
 </head>
 <body>
 
@@ -129,7 +16,6 @@
         <p>Start messaging right now...</p>
     </div>
 </div>
-
 
 <div class="login-page">
     <div class="form">
@@ -166,41 +52,7 @@
     </div>
 </div>
 
-
-<script>
-    localStorage.token = null;
-    $('form').on('submit', e => {
-        e.preventDefault();
-        let value = $(e.target).attr('class');
-        let selector = '.' + value;
-        $.ajax({
-            url: '/' + value,
-            type: 'POST',
-            data: {
-                username: $(selector + ' [name=username]').val(),
-                email: $(selector + ' [name=email]').val(),
-                password: $(selector + ' [name=password]').val()
-            },
-            beforeSend: () => {
-                $(selector + ' button').prop('disabled', true);
-            },
-            success: (res) => {
-                localStorage.token = res.token;
-                // работает, перенаправляем на следю страницу
-                window.location.replace(window.location.href + "chat");
-            },
-            error: (res) => {
-                localStorage.token = '';
-                $('#messageItem').text(res.responseJSON.message);
-                $('#exampleModal').modal('show');
-            },
-            complete: () => {
-                $(selector + ' button').prop('disabled', false);
-            }
-        });
-        return false;
-    });
-</script>
+<script src="/javascripts/index.js"></script>
 
 </body>
 </html>

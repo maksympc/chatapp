@@ -1,0 +1,107 @@
+body {
+    background: lightgray;
+    font-family: 'Roboto', sans-serif;
+}
+
+.header {
+    background: #e9ecef;
+    height: 160px;
+    color: #999;
+}
+
+.logo {
+    height: 100%;
+    padding-bottom: 1px;
+}
+
+.profileGroup {
+    padding-right: 20px;
+    padding-bottom: 5px;
+}
+
+.profileGroup button {
+    margin-right: 5px;
+}
+
+.form-control {
+    margin-top: 20px;
+    font-size: 16px;
+    box-shadow: none;
+    border: 0;
+    border-bottom: 1px dashed #e0e0e0;
+    border-radius: 0;
+}
+
+.form-control:focus {
+    border-bottom: 2px solid #e0e0e0;
+    box-shadow: none;
+}
+
+.btn {
+    border-radius: 5px;
+    outline: none !important;
+}
+
+.form {
+    width: 480px;
+    margin: 0 auto;
+    padding: 30px 0;
+}
+
+.form form {
+    margin-bottom: 20px;
+    background: #fff;
+    padding: 40px;
+}
+
+.form a {
+    color: #000;
+}
+
+.form a:hover {
+    color: #fff;
+}
+
+.form h2 {
+    text-align: center;
+    font-size: 34px;
+    margin: 10px 0 15px;
+}
+
+.form .hint-text {
+    color: #999;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form .form-group {
+    margin-bottom: 20px;
+}
+
+.form .btn {
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.signup-btn {
+    width: 100%;
+    margin-top: 20px;
+    background: #3ca84b;
+    color: #fff;
+    text-align: center;
+    transition: all 0.4s;
+}
+
+.signup-btn:hover {
+    background: #69c976;
+    color: #fff;
+}
+
+@media all and (min-width: 768px) {
+    .header {
+        margin-bottom: 20px;
+        height: 225px;
+    }
+}
