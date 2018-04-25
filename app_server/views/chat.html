@@ -18,20 +18,48 @@
 
 </head>
 <style>
-
+    body {
+        font-family: 'Roboto', sans-serif;
+    }
 
     ul {
         list-style: none;
         word-break: break-all;
     }
 
-    .jumbotron {
-        margin-bottom: 0;
+    ul#messages {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    /*div {*/
+    /*border: 1px green solid;*/
+    /*}*/
+
+    .header {
+        background: #e9ecef;
+        height: 160px;
+        color: #999;
+    }
+
+    .logo {
+        height: 100%;
+        padding-bottom: 11px;
+    }
+
+    .profileGroup {
+        padding-right: 20px;
+        padding-bottom: 5px;
+    }
+
+    .profileGroup button {
+        margin-right: 5px;
     }
 
     /*MESSAGES AREA*/
     .messagesDivHeight {
         height: 360px;
+        overflow-y: auto;
     }
 
     .message-container {
@@ -42,6 +70,10 @@
         margin: 5px 0;
     }
 
+    .message-container:hover {
+        background: #fafafa;
+    }
+
     .message-container::after {
         content: "";
         clear: both;
@@ -50,11 +82,11 @@
 
     .message-avatar {
         min-width: 40px;
-        width: 100px;
     }
 
     .message-time {
         color: #aaa;
+        font-size: smaller;
     }
 
     /*INPUT AREA*/
@@ -62,6 +94,14 @@
         width: 100%;
         font-size: 100%;
         height: 40px;
+
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
+        box-shadow: none !important;
+    }
+
+    .input_message:focus {
+        border: 2px #a8a8a8 solid;
     }
 
     /*USERS AREA*/
@@ -70,20 +110,24 @@
     }
 
     .usersUl {
-        overflow-x: scroll;
+        overflow-x: auto;
     }
 
     .usersAvatarIcon {
-        font-size: 60px;
+        font-size: 20px;
         color: white;
     }
 
     .userLiItem {
-        background: #f6f3ee;
+        background: #f1f1f1;
         width: 140px;
         margin-top: 2px;
         border: 2px #f6f3ee solid;
         border-radius: 5px;
+    }
+
+    .userLiItem:hover {
+        background: #fafafa;
     }
 
     .btn-group {
@@ -103,62 +147,86 @@
 
     /*INFO AREA*/
 
-    table {
-        padding: 0;
-        margin: 0;
-        height: 15px;
-    }
-
     .infoDiv {
-        max-height: 120px;
-        overflow-y: auto;
-        margin-bottom: 5px;
+        height: 120px;
     }
 
-    .infoTable {
+    .infoDivTab {
+        max-height: 100px;
+        overflow-y: auto;
+    }
+
+    .infoUl {
+        list-style: none;
         height: 100%;
         font-size: 12px;
     }
 
-    .infoTable tr:nth-child(even) {
-        background: #f7e4d4;
+    .infoUl li {
+        min-height: 25px;
     }
 
-    .infoTable tr:nth-child(odd) {
-        background: #faf0e6;
+    .infoUl li:nth-child(even) {
+        background: #f1f1f1;
+    }
+
+    .infoUl li:nth-child(odd) {
+        background: #f8f9fa;
     }
 
     @media all and (min-width: 768px) {
         .messagesDivHeight {
-            max-height: 480px;
-            overflow-y: scroll;
+            height: 640px;
+            overflow-y: auto;
         }
 
         .usersDivArea {
             margin-top: 20px;
         }
 
+        .usersAvatarIcon {
+            font-size: 60px;
+            color: white;
+        }
+
         .infoDiv {
             margin-top: 20px;
         }
 
-        .jumbotron {
+        .message-time {
+            font-size: medium;
+        }
+
+        .message-avatar {
+            min-width: 40px;
+            width: 100px;
+        }
+
+        .header {
             margin-bottom: 20px;
+            height: 225px;
         }
     }
 </style>
 <body>
 
-<div class="jumbotron jumbotron-fluid ">
-    <div class="container">
+<div class="container-fluild d-flex justify-content-center flex-column header">
+    <div class="container d-flex justify-content-end flex-column logo">
         <h1>Chatick App!</h1>
-        <p>Feel free to write a message...</p>
+        <p>Start messaging right now...</p>
+    </div>
+    <div class="mt-auto p-2 align-self-end profileGroup">
+        <button type="button" class="btn btn-outline-primary" id="profileId"><i class="fa fa-user-circle-o"></i> Profile
+        </button>
+        <button type="button" class="btn btn-outline-danger" id="logoutId"><span class="fa fa-sign-out"></span> Logout
+        </button>
     </div>
 </div>
 
+
 <div class="container">
     <!-- Область вывода сообщений -->
-    <div id="messagesDiv" class="container_fluid bg-light col-sm-12 messagesDivHeight">
+    <div id="messagesDiv" class="container_fluid bg-light messagesDivHeight">
         <ul id="messages">
             <!--DO NOT DELETE, HTML EXAMPLE-->
             <!--<li class="d-flex message-container">-->
@@ -181,7 +249,8 @@
     </div>
     <!-- Область ввода сообщения -->
     <div class="container_fluid">
-        <input type="text" class="form-control input_message" id="inputMessage" placeholder="Type here..."/>
+        <input type="text" class="form-control input_message" id="inputMessage" maxlength="200"
+               placeholder="Type here..."/>
     </div>
     <!-- Пользователи -->
     <div class="container_fluid usersDivArea">
@@ -243,43 +312,31 @@
             </div>
         </div>
     </div>
+
     <div class="container_fluid infoDiv">
-        <!-- Info-сообщения-->
+        <ul class="nav nav-tabs">
+            <li class="nav-item active">
+                <a class="nav-link active" data-toggle="tab" href="#infoArea">Info</a>
+            </li>
+        </ul>
+        <div id="infoArea" class="tab-pane active container_fluid infoDivTab">
+            <ul id="infoUl" class="container_fluid infoUl">
 
+                <!--DO NOT DELETE, HTML EXAMPLE-->
+                <!--<li >-->
+                <!--Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info-->
+                <!--message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message-->
+                <!--bla-bla!-->
+                <!--</li>-->
 
-        <div id="infoArea" class="tab-pane active">
-            <table id="infoTable" class="table infoTable">
-
-                <tr style="height: 20px">
-                    <td>Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info
-                        message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message
-                        bla-bla!
-                    </td>
-                </tr>
-                <tr>
-                    <td>Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info
-                        message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message
-                        bla-bla!
-                    </td>
-                </tr>
-                <tr>
-                    <td>Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info
-                        message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message
-                        bla-bla!
-                    </td>
-                </tr>
-                <tr>
-                    <td>Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info
-                        message bla-bla! Info message bla-bla! Info message bla-bla! Info message bla-bla! Info message
-                        bla-bla!
-                    </td>
-                </tr>
-            </table>
+            </ul>
         </div>
     </div>
-
 </div>
 
+<!--<div class="footer">-->
+<!--<a href="https://github.com/maksympc/chatapp" target="_blank">&#169 2018 Chatick App!</a>-->
+<!--</div>-->
 <script src="/socket.io/socket.io.js"></script>
 <script src="/javascripts/chat.js"></script>
 

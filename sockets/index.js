@@ -74,7 +74,7 @@ index.init = function (server) {
                             else {
                                 for (let sock of usersOnlineStorage.values()) {
                                     if (sock.user.role.toLowerCase() === 'admin') {
-                                        sock.emit('info', response.message);
+                                        sock.emit('info', {message: response.message});
                                     }
                                 }
                             }
@@ -146,6 +146,21 @@ index.init = function (server) {
                 // }
                 socket.on('new message', (messageItem) => {
                     logger.debug('Socket try to add #new message:', messageItem);
+                    // проверка последнего добавленного сообщения и длинны сообщения
+                    if (messageItem.message) {
+                        let lastMessageTime = checkLastMessageTimeByEmail(socket.user.email);
+                        if (!lastMessageTime.status) {
+                            logger.debug('Timeout error. Need to wait:', messageItem.email + ", " + lastMessageTime.wait + " sec");
+                            socket.emit('info', {message: "Can't add message, you should wait for " + lastMessageTime.wait + " sec!"});
+                            return;
+                        }
+                        if (messageItem.message.length > 200) {
+                            logger.debug('Message length error. Your message exceeded 200 characters');
+                            socket.emit('info', {message: 'Message length error. Your message exceeded 200 characters'});
+                            return;
+                        }
+                    }
+
                     usersService.getBanUserStatus(messageItem.email)
                     // проверяем на бан
                         .then(banResponse => {
@@ -181,25 +196,9 @@ index.init = function (server) {
                                             return {status: false, message: muteResponse.message};
                                         }
                                     })
-                                    // проверка последнего добавленного сообщения
-                                    .then((res) => {
-                                        logger.debug("then3#:" + JSON.stringify(res));
-                                        if (res.status) {
-                                            let lastMessageTime = checkLastMessageTimeByEmail(socket.user.email);
-                                            if (!lastMessageTime.status) {
-                                                logger.debug('Timeout error. Need to wait:', messageItem.email + ", " + lastMessageTime.wait + " sec");
-                                                return {
-                                                    status: false,
-                                                    message: "Can't add message, you should wait for " + lastMessageTime.wait + " sec!"
-                                                };
-                                            }
-                                            return {status: true};
-                                        }
-                                        return res;
-                                    })
                                     // добавляем в базу
                                     .then((res) => {
-                                        logger.debug("then4#:" + JSON.stringify(res));
+                                        logger.debug("then3#:" + JSON.stringify(res));
                                         if (res.status) {
                                             messagesService.addMessage(messageItem).then(
                                                 addResponse => {
@@ -231,18 +230,18 @@ index.init = function (server) {
                                     })
                                     //отправляем сообщение об ошибке пользователю
                                     .then(res => {
-                                        logger.debug("then5#:" + JSON.stringify(res));
+                                        logger.debug("then4#:" + JSON.stringify(res));
                                         if (!res.status) {
-                                            socket.emit('info', res.message);
+                                            socket.emit('info', {message: res.message});
                                         }
                                     });
                             }
                         })
                         //отправляем сообщение об ошибке пользователю
                         .catch(res => {
-                            logger.debug("then6#:" + JSON.stringify(res));
+                            logger.debug("then5#:" + JSON.stringify(res));
                             if (!res.status) {
-                                socket.emit('info', res.message);
+                                socket.emit('info', {message: res.message});
                             }
                         });
                 });
@@ -300,7 +299,7 @@ index.init = function (server) {
                                             let username = sock.user.username;
                                             sock.disconnect(true);
                                             socket.emit('info', {message: "user:" + email + ", was successfully banned!"});
-                                            socket.broadcast.emit('banned', {username: username});
+                                            socket.broadcast.emit('banned', {message: 'User \'' + banRes.user.username + '\' was banned!'});
                                         }
                                     });
                                 } else {
@@ -335,7 +334,7 @@ index.init = function (server) {
                         .then((res) => {
                             if (res.status) {
                                 socket.emit('info', {message: 'User email:' + res.user.email + ' was successfully unbanned!'});
-                                socket.broadcast.emit('unbanned', {data: res.user.username});
+                                socket.broadcast.emit('unbanned', {message: 'User \'' + res.user.username + '\' was unbanned!'});
                             } else {
                                 socket.emit('info', {message: 'Can\'t unban user, cause:' + res.message});
                             }
@@ -367,12 +366,10 @@ index.init = function (server) {
                         .then(muteRes => {
                             if (muteRes.status) {
                                 // оповещаем пользователя, что он был замУчен
-
-
                                 for (let sock of usersOnlineStorage.values()) {
                                     if (sock.user.email === email) {
-                                        sock.emit('mute user');
-                                        socket.broadcast.emit('muted', {username: muteRes.user.username})
+                                        sock.emit('mute user', {message: 'You was muted by: ' + socket.user.username});
+                                        socket.broadcast.emit('muted', {message: 'User \'' + muteRes.user.username + '\' was muted'});
                                     }
                                 }
                                 socket.emit('info', {message: 'User was successfully muted! Email:' + muteRes.user.email});
@@ -411,8 +408,8 @@ index.init = function (server) {
                             if (unmuteRes.status) {
                                 for (let sock of usersOnlineStorage.values()) {
                                     if (sock.user.email === email) {
-                                        sock.emit('unmute user');
-                                        socket.broadcast.emit('unmuted', {username: unmuteRes.user.username})
+                                        sock.emit('unmute user', {message: 'You was unmuted by: ' + socket.user.username});
+                                        socket.broadcast.emit('unmuted', {message: 'User \'' + unmuteRes.user.username + '\' was unmuted'})
                                     }
                                 }
                                 socket.emit('info', {message: "User was successfully unmuted! Email:" + unmuteRes.user.email});

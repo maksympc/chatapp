@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Sign up page</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Index page</title>
+    <!-- Latest compiled and minified CSS -->
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
 
     <style>
         body {
@@ -13,32 +16,7 @@
             font-family: 'Roboto', sans-serif;
         }
 
-        .header {
-            background: #e9ecef;
-            height: 160px;
-            color: #999;
-        }
-
-        .logo {
-            height: 100%;
-            padding-bottom: 1px;
-        }
-
-        .profileGroup {
-            padding-right: 20px;
-            padding-bottom: 5px;
-        }
-
-        .profileGroup button {
-            margin-right: 5px;
-        }
-
-        /*.header {*/
-        /*color: #999;*/
-        /*}*/
-
         .form-control {
-            margin-top: 10px;
             font-size: 16px;
             box-shadow: none;
             border: 0;
@@ -100,8 +78,6 @@
         }
 
         .signup-btn {
-            width: 100%;
-            margin-top: 10px;
             background: #3ca84b;
             color: #fff;
             text-align: center;
@@ -112,60 +88,29 @@
             background: #69c976;
             color: #fff;
         }
-
-        @media all and (min-width: 768px) {
-            .header {
-                margin-bottom: 20px;
-                height: 225px;
-            }
-        }
     </style>
 </head>
 <body>
 
-<div class="container-fluild d-flex justify-content-center flex-column header">
-    <div class="container d-flex justify-content-center flex-column logo">
+<div class="jumbotron jumbotron-fluid ">
+    <div class="container">
         <h1>Chatick App!</h1>
         <p>Start messaging right now...</p>
     </div>
 </div>
 
-
-<div class="login-page">
-    <div class="form">
-        <form class="login" method="post">
-            <input type="text" class="form-control input-lg " name="username" id="username" placeholder="Username"
-                   required="required" pattern='[A-Za-zА-Яа-яЁёІіЪъ]{3,}'
-                   title="Only Latin and Cyrillic alphabet are allowed. The minimum length is 3 characters.">
-            <input type="email" class="form-control input-lg" name="email" id="email" placeholder="Email address"
-                   required="required" title="Input valid email address"/>
-            <input type="password" class="form-control input-lg" name="password" id="password"
-                   placeholder="Password"
-                   required="required" minlength='6' title="Minimum length is 6 characters."/>
-            <button class="btn signup-btn" type="submit">Sign Up</button>
-        </form>
-    </div>
+<div class="form">
+    <form method="post">
+        <input type="text" class="form-control input-lg " name="username" id="username" placeholder="Username"
+               required="required" pattern='[A-Za-zА-Яа-яЁёІіЪъ]{3,}'
+               title="Only Latin and Cyrillic alphabet are allowed. The minimum length is 3 characters.">
+        <input type="email" class="form-control input-lg" name="email" id="email" placeholder="Email Address"
+               required="required" title="Input valid email address">
+        <input type="password" class="form-control input-lg" name="password" id="password" placeholder="Password"
+               required="required" minlength='6' title="Minimum length is 6 characters.">
+        <button type="submit" class="btn btn-default btn-md btn-block signup-btn">Sign Up</button>
+    </form>
 </div>
-
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Informational message</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="messageItem">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 
 <script>
     localStorage.token = null;
@@ -191,8 +136,7 @@
             },
             error: (res) => {
                 localStorage.token = '';
-                $('#messageItem').text(res.responseJSON.message);
-                $('#exampleModal').modal('show');
+                alert(JSON.stringify(res));
             },
             complete: () => {
                 $(selector + ' button').prop('disabled', false);
@@ -201,6 +145,5 @@
         return false;
     });
 </script>
-
 </body>
 </html>

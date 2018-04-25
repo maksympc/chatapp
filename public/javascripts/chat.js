@@ -1,7 +1,9 @@
 function parseJwt(token) {
-    var base64Url = token.split('.')[1];
-    var base64 = base64Url.replace('-', '+').replace('_', '/');
-    return JSON.parse(window.atob(base64));
+    if (!(token === undefined || token === null)) {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace('-', '+').replace('_', '/');
+        return JSON.parse(window.atob(base64));
+    }
 }
 
 function dateToString(date) {
@@ -21,11 +23,53 @@ function dateToString(date) {
 $(document).ready(function () {
     var FADE_TIME = 100; // ms
     var TYPING_TIMER_LENGTH = 500; // ms
+
     var COLORS = [
-        '#e21400', '#91580f', '#f8a700', '#f78b00',
-        '#58dc00', '#287b00', '#a8f07a', '#4ae8c4',
-        '#3b88eb', '#3824aa', '#a700ff', '#d300e7'
+        //yellow
+        '#ffcc5c',
+        '#f2ae72',
+        '#d9ad7c',
+        '#d4ac6e',
+        '#feb236',
+        "#ffd11a",
+        '#FF7F50',
+        '#BDB76B',
+        '#FFA500',
+        // //red
+        '#d64161',
+        '#f7786b',
+        '#f18973',
+        '#FF7F50',
+        '#FF1493',
+        "#bf4080",
+        '#e06377',
+        '#800000',
+        '#bc5a45',
+        '#c83349',
+        // //green
+        '#588c7e',
+        '#5b9aa0',
+        '#006400',
+        '#77a8a8',
+        '#80ced6',
+        '#3CB371',
+        '#6B8E23',
+        '#82b74b',
+        //blue
+        '#0099ff',
+        '#9999ff',
+        '#003399',
+        "#2F4F4F",
+        '#9900cc',
+        '#66ccff',
+        '#6600ff',
+        '#00ccff',
+        '#8A2BE2',
+
     ];
+
+    const MESSAGE_SEND_MILLISECONDS_TIMEOUT = 3 * 1000;
+    var lastTimeSend;
 
     var $window = $(window);
     // ссылка на список ul сообщений чата
@@ -34,7 +78,7 @@ $(document).ready(function () {
     var $inputMessage = $('#inputMessage');
     var $onlineUsersUl = $('#onlineUsersUl');
     var $allUsersUl = $('#allUsersUl');
-
+    var $infoUl = $('#infoUl');
     // object, that contains all token's {email, role, username, exp, iat} fields
     var user = parseJwt(localStorage.token);
     // for typing socket event
@@ -43,17 +87,21 @@ $(document).ready(function () {
     var lastTypingTime;
     // фокусируемся на поле, при вводе сообщения
     var $currentInput = $inputMessage.focus();
+    var $logout = $('#logoutId');
 
+    // dependency will placed in chat.html file
+    var socket = io();
 
     // incoming value
     // TODO: переписать с использованием более сложного объекта сообщения
     function addParticipantsMessage(numUsers) {
         var message = '';
         if (numUsers === 1)
-            message += "there's 1 participant";
+            message += "there's 1 participant online";
         else
-            message += "there are " + numUsers + " participants";
+            message += "there are " + numUsers + " participants online";
         log(message);
+        log('______________________________________');
     }
 
     // Prevents input from having injected markup
@@ -67,6 +115,8 @@ $(document).ready(function () {
         message = cleanInput(message);
         if (message) {
             $inputMessage.val('');
+
+
             // TODO: перед добавлением сообщения сделать проверку на 15 секунд.
             socket.emit('new message', {email: user.email, username: user.username, message: message})
         }
@@ -75,7 +125,7 @@ $(document).ready(function () {
     // Log message
     // TODO: создание элемента для печати сообщения.
     function log(message, options) {
-        var $el = $('<li>').text(message);
+        var $el = $('<li>').text(message).css('text-align', 'center').css('color', '#669999');
         addMessageElement($el, options);
     }
 
@@ -104,7 +154,7 @@ $(document).ready(function () {
             $avatarArea.append($avatar, $username);
             // 2. тело сообщения и время
             let $messageArea = $('<div class="container-fluid d-flex flex-column"/>');
-            let $message = $('<div>').text(data.message);
+            let $message = $('<div>').text(data.message).css('color', getUsernameColor(data.username));
             let $time = $('<div class="mt-auto p-2 align-self-end message-time">').text(dateToString(data.createdOn));
             $messageArea.append($message, $time);
             // 3. заполняем элемент списка
@@ -136,6 +186,18 @@ $(document).ready(function () {
         })
     }
 
+    function updateMessages(data) {
+        $messages.empty();
+        var options = {animationTime: 30};
+        console.log("update Messages:");
+        console.log("typeof:" + (typeof data.messages));
+        console.log("messages:" + JSON.stringify(data.messages));
+        data.messages.forEach((message) => {
+            console.log('forEach message:' + JSON.stringify(message));
+            addChatMessage(message, options);
+        });
+    }
+
     // Adds a message element to the messages and scrolls to the bottom
     // el - The element to add as a message
     // options.fade - If the element should fade-in (default = true)
@@ -162,10 +224,13 @@ $(document).ready(function () {
         } else {
             $messages.append($el);
         }
+
+        options.animationTime = options.animationTime || 'slow';
+
         // прокрутка вниз
         $('#messagesDiv').animate({
             scrollTop: $messages[0].scrollHeight
-        }, 'fast');
+        }, options.animationTime);
     }
 
 
@@ -182,30 +247,31 @@ $(document).ready(function () {
             let $avatar = $('<i class="fa fa-user usersAvatarIcon"></i>').css('color', getUsernameColor(user.username));
             $avatarArea.append($avatar);
             //username
-            let $onlineSuccess = $('<i class="fa fa-circle text-success"></i>');
-            let $username = $('<div/>').append($onlineSuccess);
-            $username.text(user.username).css('color', getUsernameColor(user.username));
+            let $onlineSuccess = $('<i class="fa fa-circle"></i>').css('color', '#66de28');
+            let $name = $('<span/>').text(' ' + user.username).css('color', getUsernameColor(user.username));
+            let $username = $('<div/>').append($onlineSuccess, $name);
             // buttons for admin
-            let $buttonGroup = $('<div class="btn-group"/>');
-            //ban
-            let $buttonBan = $('<button type="button" class="btn btn-danger btn-sm btn-admin-btn"/>')
-                .data('email', user.email)
-                .append('<i class="fa fa-remove managingIcon"/>');
-            //mute
-            let $buttonMute = $('<button type="button" class="btn btn-warning btn-sm btn-admin-btn"/>')
-                .data('email', user.email)
-                .append('<i class="fa fa-volume-off managingIcon"/>');
-            //unmute
-            let $buttonUnmute = $('<button type="button" class="btn btn-info btn-sm btn-admin-btn"/>')
-                .data('email', user.email)
-                .append('<i class="fa fa-volume-up managingIcon"/>');
-            //unban
-            let $buttonUnban = $('<button type="button" class="btn btn-success btn-sm btn-admin-btn"/>')
-                .data('email', user.email)
-                .append('<i class="fa fa-user-plus managingIcon"/>');
-            $buttonGroup.append($buttonBan, $buttonMute, $buttonUnmute, $buttonUnban);
+            // let $buttonGroup = $('<div class="btn-group"/>');
+            // //ban
+            // let $buttonBan = $('<button type="button" class="btn btn-danger btn-sm btn-admin-btn"/>')
+            //     .data('email', user.email)
+            //     .append('<i class="fa fa-remove managingIcon"/>');
+            // //mute
+            // let $buttonMute = $('<button type="button" class="btn btn-warning btn-sm btn-admin-btn"/>')
+            //     .data('email', user.email)
+            //     .append('<i class="fa fa-volume-off managingIcon"/>');
+            // //unmute
+            // let $buttonUnmute = $('<button type="button" class="btn btn-info btn-sm btn-admin-btn"/>')
+            //     .data('email', user.email)
+            //     .append('<i class="fa fa-volume-up managingIcon"/>');
+            // //unban
+            // let $buttonUnban = $('<button type="button" class="btn btn-success btn-sm btn-admin-btn"/>')
+            //     .data('email', user.email)
+            //     .append('<i class="fa fa-user-plus managingIcon"/>');
+            // $buttonGroup.append($buttonBan, $buttonMute, $buttonUnmute, $buttonUnban);
             // construct root <li> element
-            $rootLi.append($avatarArea, $username, $buttonGroup);
+            // $rootLi.append($avatarArea, $username, $buttonGroup);
+            $rootLi.append($avatarArea, $username);
             // render root li element
             addOnlineUserElement($rootLi);
         });
@@ -223,9 +289,7 @@ $(document).ready(function () {
     function updateAllUsersList(data) {
         // проходимся по каждому элементу в массиве
         $allUsersUl.empty();
-        console.log(data);
         data.forEach((user, index, onlineUsers) => {
-            console.log("user:" + user);
             // rootItem
             let $rootLi = $('<li class="list-inline-item text-center userLiItem"/>');
             //icon
@@ -280,8 +344,17 @@ $(document).ready(function () {
     }
 
 
+    function createInfoListItem(data) {
+        let $li = $('<li/>').text(data);
+        addInfoListItem($li);
+    }
 
-
+    function addInfoListItem(el) {
+        $infoUl.append(el);
+        $('#infoArea').animate({
+            scrollTop: $infoUl[0].scrollHeight
+        }, 'fast');
+    }
 
 
     // Updates the typing event
@@ -332,9 +405,18 @@ $(document).ready(function () {
         // When the client hits ENTER on their keyboard
         if (event.which === 13) {
             if (user) {
+                // делаем проверку на 15 секунд
+                if (lastTimeSend) {
+                    if (MESSAGE_SEND_MILLISECONDS_TIMEOUT > (Date.now() - lastTimeSend)) {
+                        createInfoListItem("Before sending, you should wait " + ((MESSAGE_SEND_MILLISECONDS_TIMEOUT - (Date.now() - lastTimeSend)) / 1000).toFixed(2) + " sec");
+                        return;
+                    }
+                }
+                lastTimeSend = Date.now();
                 sendMessage();
                 socket.emit('stop typing');
                 typing = false;
+
             }
         }
     });
@@ -351,9 +433,18 @@ $(document).ready(function () {
         $inputMessage.focus();
     });
 
+    $logout.click(function () {
+        localStorage.token = null;
+        console.log('button was pressed!');
+        if (socket) {
+            console.log('socket present!');
+            socket.disconnect(true);
+            window.location.replace(window.location.href.slice(0, -4));
+            return;
+        }
+        window.location.replace(window.location.href.slice(0, -4));
+    });
 
-    // dependency will placed in chat.html file
-    var socket = io();
 
     socket.on('connect', function () {
         socket.emit('authenticate', {token: localStorage.token})
@@ -365,9 +456,8 @@ $(document).ready(function () {
                     user = data.user;
                     // should parse data object
                     updateOnlineUsersList(data.onlineUsers);
-                    // updateMessages(data.messages);
+                    updateMessages(data.messages);
                     // Display the welcome message
-                    console.log("Welcome, " + JSON.stringify(user));
                     log("Welcome, " + user.username);
                     addParticipantsMessage(data.numUsers);
                 });
@@ -411,20 +501,50 @@ $(document).ready(function () {
                     updateAllUsersList(data);
                 });
 
-
-                //TODO:доделать
                 socket.on('banned', function (data) {
-                    alert('user was banned:' + data);
+                    createInfoListItem(data.message);
+                });
+
+                socket.on('unbanned', function (data) {
+                    createInfoListItem(data.message);
                 });
 
                 socket.on('info', function (data) {
-                    alert('info:' + data);
+                    createInfoListItem(data.message);
                 });
+
+                socket.on('second connection', function (data) {
+                    alert(data.message);
+                });
+
+
+                socket.on('mute user', function (data) {
+                    createInfoListItem(data.message);
+                    $inputMessage.prop("disabled", true);
+                });
+
+                socket.on('unmute user', function (data) {
+                    console.log('unmute:' + JSON.stringify(data));
+                    createInfoListItem(data.message);
+                    $inputMessage.prop("disabled", false);
+                });
+
+                socket.on('muted', function (data) {
+                    createInfoListItem(data.message);
+                });
+
+                socket.on('unmuted', function (data) {
+                    createInfoListItem(data.message);
+                });
+
+                socket.on('remove all messages', function () {
+                    console.log('remove all messages!');
+                });
+
             })
             .on('disconnect', function () {
-                localStorage.token = null;
-                alert('you have been disconnected');
                 // обрезаем ссылку до имени хоста
+                localStorage.token = null;
                 window.location.replace(window.location.href.slice(0, -4));
             })
             .on('reconnect', function () {
@@ -436,5 +556,4 @@ $(document).ready(function () {
             });
     });
 
-})
-;
+});
