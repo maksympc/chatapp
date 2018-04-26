@@ -88,6 +88,6 @@ function onListening() {
     debug('Listening on ' + bind);
 }
 
-// ИНИЦИАЛИЗАЦИЯ СОКЕТОВ
+// Socket initialization, load and start listening server
 let sockets = require('../sockets/index');
 sockets.init(server);

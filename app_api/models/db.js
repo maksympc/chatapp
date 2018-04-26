@@ -1,47 +1,53 @@
-//TODO: import mongoose
-//TODO: is used to communicate with MongoDB via mongoose
+//
+// This module contains logic to describe interaction with MongoDB database via Mongoose
+//
 var mongoose = require('mongoose');
-//TODO:спрятать имя пользователя и пароль от базы
-//TODO:в зависимости от переменной окружения используем разные базы данных
+var logger = require('../../logger');
+// Depends on environment variable, use different DB storages
 var dbURI = 'mongodb://localhost/chatick';
 if (process.env.NODE_ENV === 'production') {
     dbURI = process.env.MONGOLAB_URI;
 }
 mongoose.connect(dbURI);
 
-//TODO: DB connection, listen events
 mongoose.connection.on('connected', function () {
-    console.log('Mongoose connected to ' + dbURI);
-});
-mongoose.connection.on('error', function (err) {
-    console.log('Mongoose connection error: ' + err);
-});
-mongoose.connection.on('disconnected', function () {
-    console.log('Mongoose disconnected');
+    logger.debug('Mongoose connected to ' + dbURI);
 });
 
-//TODO: used to close connection between app and DB
+mongoose.connection.on('error', function (err) {
+    logger.debug('Mongoose connection error: ' + err);
+});
+
+mongoose.connection.on('disconnected', function () {
+    logger.debug('Mongoose disconnected');
+});
+
+//Used to close connection between app and DB
 var gracefulShutdown;
+
+
 // To be called when process is restarted or terminated
 gracefulShutdown = function (msg, callback) {
     mongoose.connection.close(function () {
-        console.log('Mongoose disconnected through ' + msg);
+        logger.debug('Mongoose disconnected through ' + msg);
         callback();
     });
 };
 
-// For nodemon restarts
+// If nodemon restarts, should close connection
 process.once('SIGUSR2', function () {
     gracefulShutdown('nodemon restart', function () {
         process.kill(process.pid, 'SIGUSR2');
     });
 });
-// For app termination
+
+// If app terminates, should close conncetion
 process.on('SIGINT', function () {
     gracefulShutdown('app termination', function () {
         process.exit(0);
     });
 });
+
 // For Heroku app termination
 process.on('SIGTERM', function () {
     gracefulShutdown('Heroku app termination', function () {
@@ -49,5 +55,6 @@ process.on('SIGTERM', function () {
     });
 });
 
+// Import schemas, that should be used in applicaton
 require('./users');
 require('./messages');

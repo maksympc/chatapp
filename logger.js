@@ -1,7 +1,6 @@
 var winston = require('winston');
 winston.emitErrs = true;
 
-//TODO: change log level
 var logger = new winston.Logger({
     transports: [
         new winston.transports.File({
@@ -23,6 +22,7 @@ var logger = new winston.Logger({
 });
 
 module.exports = logger;
+
 module.exports.stream = {
     write: function (message, encoding) {
         logger.info(message);

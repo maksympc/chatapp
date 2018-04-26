@@ -1,22 +1,19 @@
+//
+// This module contains logic, that mapping request to /api/ path
+//
 var express = require('express');
 var router = express.Router();
-
-//var ctrlMessages = require('../controllers/messages');
-//var ctrlUsers = require('../controllers/users');
+var ctrlMessages = require('../controllers/messages');
+var ctrlUsers = require('../controllers/users');
 var ctrlAuthentication = require('../controllers/authentication');
 
-//TODO:messages API mapping
-//router.get('/messages', ctrlMessages.getAllMessages);
-//router.post('/messages', ctrlMessages.addMessage);
+// used as API to get all stored messages in DB
+router.get('/messages', ctrlMessages.getAllMessages);
 
-//TODO:users API mapping
-//router.get('/users', ctrlUsers.getAllUsers);
-//router.post('/users/ban/:email', ctrlUsers.banUser);
-//router.post('/users/unban/:email', ctrlUsers.unbanUser);
-//router.post('/users/mute/:email', ctrlUsers.muteUser);
-//router.post('/users/unmute/:email', ctrlUsers.unmuteUser);
+// used as API to get all stored users in DB
+router.get('/users', ctrlUsers.getAllUsers);
 
-//TODO:authentication mapping, combined register and login logic in login function
+// used as API to get all stored users in DB
 router.post('/login', ctrlAuthentication.login);
 
 module.exports = router;

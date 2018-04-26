@@ -91,7 +91,7 @@ $(document).ready(function () {
     // dependency will placed in chat.html file
     var socket = io();
 
-    // function createAdminModal(userItem){
+    // function createProfileModal(userItem){
     //     // let $root = $('<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">');
     //
     // }
@@ -114,7 +114,6 @@ $(document).ready(function () {
     }());
 
     // incoming value
-    // TODO: переписать с использованием более сложного объекта сообщения
     function addParticipantsMessage(numUsers) {
         var message = '';
         if (numUsers === 1)
@@ -122,7 +121,7 @@ $(document).ready(function () {
         else
             message += "there are " + numUsers + " participants online";
         log(message);
-        log('______________________________________');
+        log('________________________________');
     }
 
     // Prevents input from having injected markup
@@ -130,15 +129,20 @@ $(document).ready(function () {
         return $('<div/>').text(input).html();
     }
 
-    // TODO: проверить методы
     function sendMessage() {
+        // делаем проверку при отправки на MESSAGE_SEND_MILLISECONDS_TIMEOUT секунд
+        if (lastTimeSend) {
+            if (MESSAGE_SEND_MILLISECONDS_TIMEOUT > (Date.now() - lastTimeSend)) {
+                createInfoListItem("Before sending, you should wait " + ((MESSAGE_SEND_MILLISECONDS_TIMEOUT - (Date.now() - lastTimeSend)) / 1000).toFixed(2) + " sec");
+                return;
+            }
+        }
         var message = $inputMessage.val();
+        lastTimeSend = Date.now();
         message = cleanInput(message);
         if (message) {
             $inputMessage.val('');
 
-
-            // TODO: перед добавлением сообщения сделать проверку на 15 секунд.
             socket.emit('new message', {email: user.email, username: user.username, message: message})
         }
     }
@@ -151,7 +155,6 @@ $(document).ready(function () {
     }
 
     // создание сообщение-чата в списке сообщений
-    // TODO: пересмотреть используемые методы
     function addChatMessage(data, options) {
         // проверяем, есть ли элемент, который отвечает за то,
         // печатает ли этот пользователь в этот момент
@@ -411,7 +414,6 @@ $(document).ready(function () {
     }
 
     // Keyboard events
-
     $window.keydown(function (event) {
         // Auto-focus the current input when a key is typed
         if (!(event.ctrlKey || event.metaKey || event.altKey)) {
@@ -421,14 +423,6 @@ $(document).ready(function () {
         // When the client hits ENTER on their keyboard
         if (event.which === 13) {
             if (user) {
-                // делаем проверку на 15 секунд
-                if (lastTimeSend) {
-                    if (MESSAGE_SEND_MILLISECONDS_TIMEOUT > (Date.now() - lastTimeSend)) {
-                        createInfoListItem("Before sending, you should wait " + ((MESSAGE_SEND_MILLISECONDS_TIMEOUT - (Date.now() - lastTimeSend)) / 1000).toFixed(2) + " sec");
-                        return;
-                    }
-                }
-                lastTimeSend = Date.now();
                 sendMessage();
                 socket.emit('stop typing');
                 typing = false;

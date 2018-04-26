@@ -58,6 +58,7 @@ ul#messages {
 
 .message-avatar {
     min-width: 40px;
+    font-size:14px;
 }
 
 .message-time {
@@ -175,6 +176,7 @@ ul#messages {
 
     .message-avatar {
         min-width: 40px;
+        font-size:20px;
         width: 100px;
     }
 

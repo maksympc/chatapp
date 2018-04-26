@@ -1,26 +1,24 @@
 <!doctype html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
     <title>Chatick App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!--ICONS-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/stylesheets/chat.css"/>
 
-    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
-    <!-- jQuery library -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <!-- Popper JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
-    <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
 
-</head>
+    <!--Custom style for this page-->
+    <link rel="stylesheet" href="/stylesheets/chat.css"/>
 
+</head>
 <body>
 
+<!--PAGE HEADER-->
 <div class="container-fluild d-flex justify-content-center flex-column header">
     <div class="container d-flex justify-content-end flex-column logo">
         <h1>Chatick App!</h1>
@@ -36,9 +34,10 @@
 
 
 <div class="container">
-    <!-- Область вывода сообщений -->
+    <!-- Chat messages area -->
     <div id="messagesDiv" class="container_fluid bg-light messagesDivHeight">
         <ul id="messages">
+
             <!--DO NOT DELETE, HTML EXAMPLE-->
             <!--<li class="d-flex message-container">-->
             <!--<div class="d-flex flex-column align-items-center message-avatar">-->
@@ -56,22 +55,28 @@
             <!--<div class="mt-auto p-2 align-self-end message-time"></div>-->
             <!--</div>-->
             <!--</li>-->
+
         </ul>
     </div>
-    <!-- Область ввода сообщения -->
+
+    <!-- Input message area -->
     <div class="container_fluid">
         <input type="text" class="form-control input_message" id="inputMessage" maxlength="200"
                placeholder="Type here..."/>
     </div>
-    <!-- Пользователи -->
+
+
+    <!-- Users area -->
     <div class="container_fluid usersDivArea">
         <ul class="nav nav-tabs">
-            <li class="nav-item active" id="onlineUsersId"><a class="nav-link active" data-toggle="tab" href="#onlineUsersDiv">Online</a>
+            <li class="nav-item active" id="onlineUsersId"><a class="nav-link active" data-toggle="tab"
+                                                              href="#onlineUsersDiv">Online</a>
             </li>
             <li class="nav-item" id="allUsersId"><a class="nav-link" data-toggle="tab" href="#allUsersDiv">All</a></li>
         </ul>
         <div class="tab-content usersDiv">
 
+            <!-- Online users area -->
             <div id="onlineUsersDiv" class="tab-pane active">
                 <ul id="onlineUsersUl" class="list-inline d-flex justify-content-start usersUl">
 
@@ -99,9 +104,9 @@
                 </ul>
             </div>
 
+            <!-- All users area. Visible only if you have admin's rights  -->
             <div id="allUsersDiv" class="tab-pane">
                 <ul id="allUsersUl" class="list-inline d-flex justify-content-start usersUl">
-
 
                     <!--DO NOT DELETE, HTML EXAMPLE-->
                     <!--<li class="list-inline-item text-center userLiItem">-->
@@ -124,6 +129,7 @@
         </div>
     </div>
 
+    <!--INFO messages area-->
     <div class="container_fluid infoDiv">
         <ul class="nav nav-tabs">
             <li class="nav-item active">

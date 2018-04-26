@@ -1,8 +1,13 @@
+//
+// This module is used to interact with 'Message' schema.
+//
 var logger = require('../../logger');
 var mongoose = require('mongoose');
 var Message = mongoose.model('Message');
 
-//ok
+
+// Get all messages from DB.
+// Returns the object with following structure {status:boolean, message:String | messages:object[] }.
 module.exports.getAllMessages = async () => {
     try {
         let messages = await Message.find({}, 'username email message createdOn -_id').exec();
@@ -16,7 +21,9 @@ module.exports.getAllMessages = async () => {
     }
 };
 
-//ok
+
+// Add message to DB
+// Returns the object with following structure {status:boolean, message:String }
 module.exports.addMessage = async (messageItem) => {
     try {
         let message = await Message.create({
@@ -34,7 +41,9 @@ module.exports.addMessage = async (messageItem) => {
     }
 };
 
-//ok
+
+// Add message to DB
+// Returns the object with following structure {status:boolean, message:String }
 module.exports.removeMessages = async () => {
     try {
         await Message.remove();
