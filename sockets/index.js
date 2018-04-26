@@ -48,65 +48,71 @@ index.init = function (server) {
         .on('authenticated', (socket) => {
                 logger.debug('AuthToken: ' + JSON.stringify(socket.decoded_token));
 
+
                 // Как только было инициировано подключение
                 // Проверяем, если оно уже существует
-                if (!usersOnlineStorage.get(socket.decoded_token.email)) {
-                    // сохраняем в сессии клиента
-                    socket.user = {
-                        username: socket.decoded_token.username,
-                        email: socket.decoded_token.email,
-                        role: socket.decoded_token.role,
-                    };
-                    // добавляем в сторедж
-                    usersOnlineStorage.set(socket.decoded_token.email, socket);
-                    logger.debug('Init new socket connection. User is absent in onlineUsers: #add user:' + JSON.stringify(socket.user));
-
-                    // оповещаем всех, кто админ, новым списком онлайн-пользователей
-                    usersService.getAllUsers().then(response => {
-                            if (response.status) {
-                                // TODO:вынести в отдельную функцию
-                                for (let sock of usersOnlineStorage.values()) {
-                                    if (sock.user.role.toLowerCase() === 'admin') {
-                                        sock.emit('get all users', response.users);
-                                    }
-                                }
-                            }
-                            else {
-                                for (let sock of usersOnlineStorage.values()) {
-                                    if (sock.user.role.toLowerCase() === 'admin') {
-                                        sock.emit('info', {message: response.message});
-                                    }
-                                }
-                            }
-                        }
-                    );
-
-                    // отправляем юзеру историю переписки
-                    messagesService.getAllMessages().then(response => {
-                        if (response.status) {
-                            let sockResponse = {
-                                user: socket.user,
-                                numUsers: usersOnlineStorage.size,
-                                messages: response.messages,
-                                onlineUsers: getOnlineUsers(usersOnlineStorage)
-                            };
-                            logger.debug("login event: " + JSON.stringify(sockResponse));
-                            socket.emit('login', sockResponse);
-
-                        }
-                    });
-
-                    // echo globally (all clients) that a person has connected
-                    // отправляем пользователям сообщение о новом юзере онлайн
-                    socket.broadcast.emit('user joined', {
-                        numUsers: usersOnlineStorage.size,
-                        username: socket.user.username,
-                        onlineUsers: getOnlineUsers(usersOnlineStorage)
-                    });
-                } else {
-                    socket.emit('second connection', {message: "You have the right to keep only one connection. Close other app instances!"});
-                    return;
+                // сохраняем в сессии клиента
+                socket.user = {
+                    username: socket.decoded_token.username,
+                    email: socket.decoded_token.email,
+                    role: socket.decoded_token.role,
+                };
+                // добавляем в сторедж
+                let prevSocket = usersOnlineStorage.get(socket.decoded_token.email);
+                if (prevSocket) {
+                    //убрать старый сокет из подключения
+                    let prevName = prevSocket.user.username;
+                    prevSocket.disconnect(true);
+                    socket.broadcast.emit('info', {message: "User has reconnect with new name: " + prevName + " ==> " + socket.user.username});
                 }
+                usersOnlineStorage.set(socket.decoded_token.email, socket);
+                logger.debug('Init new socket connection. User is absent in onlineUsers: #add user:' + JSON.stringify(socket.user));
+
+                // оповещаем всех, кто админ, новым списком онлайн-пользователей
+                usersService.getAllUsers().then(response => {
+                        if (response.status) {
+                            // TODO:вынести в отдельную функцию
+                            for (let sock of usersOnlineStorage.values()) {
+                                if (sock.user.role.toLowerCase() == 'admin') {
+                                    logger.debug("ОПОВЕЩАЕМ АДМИНОВ О НОВОМ ПОЛЬЗОВАТЕЛЕ!");
+                                    sock.emit('get all users', {users: response.users});
+                                }
+                            }
+                        }
+                        else {
+                            for (let sock of usersOnlineStorage.values()) {
+                                if (sock.user.role.toLowerCase() === 'admin') {
+                                    logger.debug("ОПОВЕЩАЕМ АДМИНОВ О НОВОМ ПОЛЬЗОВАТЕЛЕ!");
+                                    sock.emit('info', {message: response.message});
+                                }
+                            }
+                        }
+                    }
+                );
+
+                // отправляем юзеру историю переписки
+                messagesService.getAllMessages().then(response => {
+                    if (response.status) {
+                        let sockResponse = {
+                            user: socket.user,
+                            numUsers: usersOnlineStorage.size,
+                            messages: response.messages,
+                            onlineUsers: getOnlineUsers(usersOnlineStorage)
+                        };
+                        logger.debug("login event: " + JSON.stringify(sockResponse));
+                        socket.emit('login', sockResponse);
+
+                    }
+                });
+
+                // echo globally (all clients) that a person has connected
+                // отправляем пользователям сообщение о новом юзере онлайн
+                socket.broadcast.emit('user joined', {
+                    numUsers: usersOnlineStorage.size,
+                    username: socket.user.username,
+                    onlineUsers: getOnlineUsers(usersOnlineStorage)
+                });
+
 
                 // ok
                 // when the user disconnects.. perform this
@@ -468,6 +474,8 @@ index.init = function (server) {
                     });
                 });
             }
-        );
-};
+        )
+    ;
+}
+;
 module.exports = index;

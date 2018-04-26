@@ -88,7 +88,6 @@ $(document).ready(function () {
     // фокусируемся на поле, при вводе сообщения
     var $currentInput = $inputMessage.focus();
     var $logoutBtn = $('#logoutId');
-    var $profileBtn = $('#profileId');
     // dependency will placed in chat.html file
     var socket = io();
 
@@ -103,11 +102,14 @@ $(document).ready(function () {
     // }
 
 
-    // $profileBtn.text(user.username);
-
+    // setUp chat page element for current user
     (function () {
+        console.log("mute:" + user.mute);
         if (user.role != 'admin') {
             $('#allUsersId').remove();
+        }
+        if (user.mute == true) {
+            $inputMessage.prop("disabled", true);
         }
     }());
 
@@ -512,7 +514,7 @@ $(document).ready(function () {
                 });
 
                 socket.on('get all users', function (data) {
-                    updateAllUsersList(data);
+                    updateAllUsersList(data.users);
                 });
 
                 socket.on('banned', function (data) {

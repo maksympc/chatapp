@@ -21,8 +21,8 @@
     <div class="form">
         <form class="login" method="post">
             <input type="text" class="form-control input-lg " name="username" id="username" placeholder="Username"
-                   required="required" pattern='[A-Za-zА-Яа-яЁёІіЪъ]{3,}'
-                   title="Only Latin and Cyrillic alphabet are allowed. The minimum length is 3 characters.">
+                   required="required" pattern='[A-Za-zА-Яа-яЁёІіЪъ0-9\s]{3,20}'
+                   title="Only Numbers, Latin and Cyrillic alphabet are allowed. The minimum length is 3 characters, max - 20.">
             <input type="email" class="form-control input-lg" name="email" id="email" placeholder="Email address"
                    required="required" title="Input valid email address"/>
             <input type="password" class="form-control input-lg" name="password" id="password"
