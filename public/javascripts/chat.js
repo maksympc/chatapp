@@ -88,40 +88,60 @@ $(document).ready(function () {
     var lastTypingTime;
     var $currentInput = $inputMessage.focus();
     var $logoutBtn = $('#logoutId');
-    // var $profileBtn = $('#profileId');
+    var $profileBtn = $('#profileId');
     var socket = io();
-    // var $modalRoot;
+    var $modalRoot;
 
-    // (function createProfileModal(userItem) {
-    //     // 1. root
-    //     $modalRoot = $('<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">');
-    //     // 2. modal content
-    //     let $modalContent = $('<div class="modal-dialog" role="document">').append('<div class="modal-content">');
-    //     // 3. header
-    //     let $modalHeader = $('<div class="modal-header">');
-    //     let $modalHeaderTitle = $('<h5 class="modal-title" id="exampleModalLabel">Profile settings</h5>');
-    //     let $modalHeaderCloseSpan = $('<span aria-hidden="true">').text('&times');
-    //     let $modalHeaderClose = $('<button type="button" class="close" data-dismiss="modal" aria-label="Close">').append($modalHeaderCloseSpan);
-    //     // 3.1 append to header
-    //     $modalHeader.append($modalHeaderTitle, $modalHeaderClose);
-    //     // 4. body
-    //     let $modalBody = $('<div class="modal-body">').text("Hello, it's modal text!");
-    //     // 5. footer
-    //     let $footerCloseBtn = $('<button type="button" class="btn btn-secondary" data-dismiss="modal">').text('Close');
-    //     let $modalFooter = $('<div class="modal-footer">').append($footerCloseBtn);
-    //     // 6. append to modal content
-    //     $modalContent.append($modalHeader, $modalBody, $modalFooter);
-    //     // 7. append all to modal root element
-    //     $modalRoot.append($modalContent);
-    // }());
+    // create profile modal window
+    function createProfileModal(userItem) {
+
+        // 1. root
+        $modalRoot = $('<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">');
+        //  2. modal content
+        let $modalDialog = $('<div class="modal-dialog" role="document">');
+        let $modalContent = $('<div class="modal-content">');
+        // 3. header
+        let $modalHeader = $('<div class="modal-header">');
+        let $modalHeaderTitle = $('<h5 class="modal-title" id="exampleModalLabel">').text('Profile settings');
+        let $modalHeaderCloseSpan = $('<span aria-hidden="true">').text('x'); // change to &times; value
+        let $modalHeaderClose = $('<button type="button" class="close" data-dismiss="modal" aria-label="Close">').append($modalHeaderCloseSpan);
+        // 3.1 append to header
+        $modalHeader.append($modalHeaderTitle, $modalHeaderClose);
 
 
-    // (function bindProfileButton() {
-    //     $profileBtn.click(function () {
-    //         // $modalRoot.modal('show');
-    //         $('#exampleModal').modal('show');
-    //     });
-    // }());
+        // 4. body
+        let $modalBody = $('<div class="modal-body">');
+        let $profileView = $('<div class="d-flex flex-column">');
+        // avatar
+        let $profileIcon = $('<i class="fa fa-user align-self-center profileAvatarIcon">').css('color', getUsernameColor(userItem.username));
+        let $profileAvatar = $('<div class="p-2 d-flex justify-content-center">').append($profileIcon);
+        //user info table
+        let $profileInfoTable = $('<table class="table table-bordered table-hover">');
+        let $profileInfoTableTbody = $('<tbody>');
+        let $profileInfoTableUsername = $('<tr>').append($('<th scope="row">').text('Usename:'), $('<td>').text(userItem.username));
+        let $profileInfoTableEmail = $('<tr>').append($('<th scope="row">').text('Email:'), $('<td>').text(userItem.email));
+        let $profileInfoTableRole = $('<tr>').append($('<th scope="row">').text('Role:'), $('<td>').text(userItem.role));
+        // construct element
+        $profileInfoTableTbody.append($profileInfoTableUsername, $profileInfoTableEmail, $profileInfoTableRole);
+        $profileInfoTable.append($profileInfoTableTbody);
+        $profileView.append($profileAvatar, $profileInfoTable);
+        $modalBody.append($profileView);
+
+        // 5. footer
+        let $footerCloseBtn = $('<button type="button" class="btn btn-secondary" data-dismiss="modal">').text('Close');
+        let $modalFooter = $('<div class="modal-footer">').append($footerCloseBtn);
+        // 6. Construct modal element
+        $modalContent.append($modalHeader, $modalBody, $modalFooter);
+        $modalDialog.append($modalContent);
+        $modalRoot.append($modalDialog);
+    }
+
+
+    function bindProfileButton() {
+        $profileBtn.click(function () {
+            $modalRoot.modal('show');
+        });
+    }
 
 
     // set up chat page elements for current user
@@ -491,6 +511,9 @@ $(document).ready(function () {
                     // Display the welcome message
                     log("Welcome, " + user.username);
                     addParticipantsMessage(data.numUsers);
+
+                    createProfileModal(user);
+                    bindProfileButton();
                 });
 
 

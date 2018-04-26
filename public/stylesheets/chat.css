@@ -48,6 +48,7 @@ ul#messages {
     border-radius: 5px;
     padding: 5px;
     margin: 5px 0;
+    word-wrap:normal;
 }
 
 .message-container:hover {
@@ -190,7 +191,7 @@ ul#messages {
     }
 
     .profileAvatarIcon {
-        font-size: 100px;
+        font-size: 120px;
     }
 
 }
