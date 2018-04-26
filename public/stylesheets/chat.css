@@ -32,6 +32,10 @@ ul#messages {
     margin-right: 5px;
 }
 
+.profileAvatarIcon {
+    font-size: 60px;
+}
+
 /*MESSAGES AREA*/
 .messagesDivHeight {
     height: 360px;
@@ -92,7 +96,7 @@ ul#messages {
 
 .usersAvatarIcon {
     font-size: 20px;
-    color: white;
+    color: lightseagreen;
 }
 
 .userLiItem {
@@ -163,7 +167,7 @@ ul#messages {
 
     .usersAvatarIcon {
         font-size: 60px;
-        color: white;
+        color: lightseagreen;
     }
 
     .infoDiv {
@@ -184,4 +188,9 @@ ul#messages {
         margin-bottom: 20px;
         height: 225px;
     }
+
+    .profileAvatarIcon {
+        font-size: 100px;
+    }
+
 }
